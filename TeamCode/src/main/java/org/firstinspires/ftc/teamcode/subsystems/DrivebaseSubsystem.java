@@ -26,8 +26,8 @@ public class DrivebaseSubsystem extends SubsystemBase {
         mecanum = new MecanumDrive(frontLeft, frontRight, rearLeft, rearRight);
     }
 
-    public void drive(double left_x, double left_y, double right_y) {
-        mecanum.driveRobotCentric(left_x, left_y, right_y);
+    public void drive(double left_x, double left_y, double right_x) {
+        mecanum.driveRobotCentric(left_x, left_y, right_x);
     }
 
     private void setZeroPowerBehaviors(Motor.ZeroPowerBehavior zeroPowerBehavior, Motor... motors) {

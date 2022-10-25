@@ -16,11 +16,11 @@ public class MecanumDriveCommand extends CommandBase {
     private final DoubleSupplier rx;
 
     public MecanumDriveCommand(DrivebaseSubsystem subsystem, DoubleSupplier left_x,
-                               DoubleSupplier left_y, DoubleSupplier right_y) {
+                               DoubleSupplier left_y, DoubleSupplier right_x) {
         drivebaseSubsystem = subsystem;
         drive = left_x;
         turn = left_y;
-        rx = right_y;
+        rx = right_x;
         addRequirements(drivebaseSubsystem);
     }
 

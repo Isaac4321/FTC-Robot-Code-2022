@@ -1,23 +1,27 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.arcrobotics.ftclib.hardware.ServoEx;
+import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 public class ClawSubsystem extends SubsystemBase {
 
-    private final Servo claw;
+    private final ServoEx claw;
 
     public ClawSubsystem(HardwareMap hardwareMap) {
-        claw = hardwareMap.get(Servo.class, "clawServo");
+        claw = new SimpleServo(hardwareMap, "clawServo", 0, 270, AngleUnit.DEGREES);
     }
 
     public void grabCone() {
-        claw.setPosition(0.56);
+        claw.rotateByAngle(90);
     }
 
     public void releaseCone() {
-        claw.setPosition(0);
+        claw.rotateByAngle(-90);
     }
 
 }
