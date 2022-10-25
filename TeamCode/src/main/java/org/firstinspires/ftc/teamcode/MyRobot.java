@@ -25,7 +25,7 @@ public class MyRobot extends Robot {
     private GamepadEx controller2 = null;
 
     private DrivebaseSubsystem drivebaseSubsystem;
-    private LinkageSubsystem linkageSubsystem;
+//    private LinkageSubsystem linkageSubsystem;
     private ClawSubsystem clawSubsystem;
 
 
@@ -51,8 +51,8 @@ public class MyRobot extends Robot {
     }
 
     private void initTele() {
-        initJoysticks();
         initSubsystems();
+        initJoysticks();
     }
 
     private void initAuto() {
@@ -66,26 +66,26 @@ public class MyRobot extends Robot {
         controller1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
                 .whenPressed(new GrabConeCommand(clawSubsystem))
                 .whenReleased(new ReleaseConeCommand(clawSubsystem));
-
-        controller1.getGamepadButton(GamepadKeys.Button.A)
-                .whenPressed(new LiftLinkageCommand(linkageSubsystem))
-                .whenReleased(new StopLinkageCommand(linkageSubsystem));
-
-        controller1.getGamepadButton(GamepadKeys.Button.B)
-                .whenPressed(new DropLinkageCommand(linkageSubsystem))
-                .whenReleased(new StopLinkageCommand(linkageSubsystem));
+//
+//        controller1.getGamepadButton(GamepadKeys.Button.A)
+//                .whenPressed(new LiftLinkageCommand(linkageSubsystem))
+//                .whenReleased(new StopLinkageCommand(linkageSubsystem));
+//
+//        controller1.getGamepadButton(GamepadKeys.Button.B)
+//                .whenPressed(new DropLinkageCommand(linkageSubsystem))
+//                .whenReleased(new StopLinkageCommand(linkageSubsystem));
     }
 
     private void initSubsystems() {
         drivebaseSubsystem = new DrivebaseSubsystem(opMode.hardwareMap);
-        linkageSubsystem = new LinkageSubsystem(opMode.hardwareMap);
+//        linkageSubsystem = new LinkageSubsystem(opMode.hardwareMap);
         clawSubsystem = new ClawSubsystem(opMode.hardwareMap);
 
-        register(drivebaseSubsystem, linkageSubsystem, clawSubsystem);
+        register(drivebaseSubsystem, /*linkageSubsystem,*/ clawSubsystem);
         drivebaseSubsystem.setDefaultCommand(new MecanumDriveCommand(drivebaseSubsystem,
                 () -> controller1.getLeftX(),
                 () -> controller1.getLeftY(),
-                () -> controller1.getRightY()));
+                () -> controller1.getRightX()));
     }
 
 
