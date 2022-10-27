@@ -4,18 +4,18 @@ import com.arcrobotics.ftclib.command.CommandBase;
 
 import org.firstinspires.ftc.teamcode.subsystems.ClawSubsystem;
 
-public class ReleaseConeCommand extends CommandBase {
+public class CloseClawCommand extends CommandBase {
 
     private final ClawSubsystem clawSubsystem;
 
-    public ReleaseConeCommand(ClawSubsystem subsystem) {
+    public CloseClawCommand(ClawSubsystem subsystem) {
         clawSubsystem = subsystem;
         addRequirements(clawSubsystem);
     }
 
     @Override
     public void initialize() {
-        clawSubsystem.releaseCone();
+        clawSubsystem.closeClaw();
     }
 
     @Override

@@ -8,7 +8,6 @@ import org.firstinspires.ftc.teamcode.MyRobot;
 @SuppressWarnings("unused")
 @TeleOp(name="Basic: Linear OpMode", group="Linear Opmode")
 public class MainOpMode extends LinearOpMode {
-
     private MyRobot robot;
 
     @Override

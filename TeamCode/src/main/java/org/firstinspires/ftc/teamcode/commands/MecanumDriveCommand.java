@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.commands;
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 
+import org.firstinspires.ftc.teamcode.opmodes.MainOpMode;
 import org.firstinspires.ftc.teamcode.subsystems.DrivebaseSubsystem;
 
 import java.util.function.DoubleSupplier;
@@ -24,6 +25,10 @@ public class MecanumDriveCommand extends CommandBase {
         addRequirements(drivebaseSubsystem);
     }
 
+    /**
+     * Called repeatedly during {@link MainOpMode#opModeIsActive()} assuming the command is scheduled.
+     * Calls the {@link DrivebaseSubsystem#drive(double, double, double)}
+     */
     @Override
     public void execute() {
         drivebaseSubsystem.drive(

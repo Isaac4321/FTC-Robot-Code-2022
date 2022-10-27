@@ -5,11 +5,11 @@ import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.commands.CloseClawCommand;
 import org.firstinspires.ftc.teamcode.commands.DropLinkageCommand;
 import org.firstinspires.ftc.teamcode.commands.GrabConeCommand;
 import org.firstinspires.ftc.teamcode.commands.LiftLinkageCommand;
 import org.firstinspires.ftc.teamcode.commands.MecanumDriveCommand;
-import org.firstinspires.ftc.teamcode.commands.ReleaseConeCommand;
 import org.firstinspires.ftc.teamcode.commands.StopLinkageCommand;
 import org.firstinspires.ftc.teamcode.subsystems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DrivebaseSubsystem;
@@ -36,10 +36,10 @@ public class MyRobot extends Robot {
     private MyRobot(OpModeType type, OpMode opMode) {
         this.opMode = opMode;
         if (type == OpModeType.TELE_OP) {
-            initTele();
+            init(false);
         }
         else {
-            initAuto();
+            init(true);
         }
     }
 
@@ -50,9 +50,15 @@ public class MyRobot extends Robot {
         return robot_instance;
     }
 
-    private void initTele() {
-        initSubsystems();
-        initJoysticks();
+    private void init(boolean auto) {
+        if (auto) {
+            initSubsystems(true);
+        }
+        else {
+            initJoysticks();
+            initSubsystems(false);
+        }
+
     }
 
     private void initAuto() {
@@ -65,8 +71,12 @@ public class MyRobot extends Robot {
 
         controller1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
                 .whenPressed(new GrabConeCommand(clawSubsystem))
-                .whenReleased(new ReleaseConeCommand(clawSubsystem));
-//
+                .whenReleased(new CloseClawCommand(clawSubsystem));
+
+        drivebaseSubsystem.setDefaultCommand(new MecanumDriveCommand(drivebaseSubsystem,
+                () -> controller1.getLeftX(),
+                () -> controller1.getLeftY(),
+                () -> controller1.getRightX()));
 //        controller1.getGamepadButton(GamepadKeys.Button.A)
 //                .whenPressed(new LiftLinkageCommand(linkageSubsystem))
 //                .whenReleased(new StopLinkageCommand(linkageSubsystem));
@@ -76,16 +86,13 @@ public class MyRobot extends Robot {
 //                .whenReleased(new StopLinkageCommand(linkageSubsystem));
     }
 
-    private void initSubsystems() {
-        drivebaseSubsystem = new DrivebaseSubsystem(opMode.hardwareMap);
-//        linkageSubsystem = new LinkageSubsystem(opMode.hardwareMap);
-        clawSubsystem = new ClawSubsystem(opMode.hardwareMap);
+    private void initSubsystems(boolean auto) {
+        drivebaseSubsystem = new DrivebaseSubsystem(opMode.hardwareMap, auto);
+//      linkageSubsystem = new LinkageSubsystem(opMode.hardwareMap);
+        clawSubsystem = new ClawSubsystem(opMode.hardwareMap, auto);
 
         register(drivebaseSubsystem, /*linkageSubsystem,*/ clawSubsystem);
-        drivebaseSubsystem.setDefaultCommand(new MecanumDriveCommand(drivebaseSubsystem,
-                () -> controller1.getLeftX(),
-                () -> controller1.getLeftY(),
-                () -> controller1.getRightX()));
+
     }
 
 

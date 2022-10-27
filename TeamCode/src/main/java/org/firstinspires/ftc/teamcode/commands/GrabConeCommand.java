@@ -15,7 +15,7 @@ public class GrabConeCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        clawSubsystem.grabCone();
+        clawSubsystem.openClaw();
     }
 
     @Override
