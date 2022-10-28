@@ -55,10 +55,6 @@ public class LinkageSubsystem extends CustomSubsystemBase {
         leftMotor = new Motor(hardwareMap, "leftLinkageMotor", motorType);
         rightMotor = new Motor(hardwareMap, "rightLinkageMotor", motorType);
 
-        //Should be 1 cm per pulse
-        leftMotor.setDistancePerPulse(1.0 / 2786.2);
-        rightMotor.setDistancePerPulse(1.0 / 2786.2);
-
         leftMotor.resetEncoder();
         rightMotor.resetEncoder();
         currentPosition = Position.HOME;
@@ -119,6 +115,10 @@ public class LinkageSubsystem extends CustomSubsystemBase {
         }
 
         MotorSettings.stopMotors(leftMotor, rightMotor);
+    }
+
+    public Position getCurrentPosition() {
+        return currentPosition;
     }
 
 }

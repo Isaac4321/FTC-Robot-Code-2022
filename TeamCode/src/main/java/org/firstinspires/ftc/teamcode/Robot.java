@@ -1,13 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.arcrobotics.ftclib.command.CommandGroupBase;
-import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.teamcode.commands.CloseClawCommand;
 import org.firstinspires.ftc.teamcode.commands.DropLinkageCommand;
 import org.firstinspires.ftc.teamcode.commands.LiftLinkageCommand;
@@ -22,9 +19,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 @SuppressWarnings("unused")
-public class MyRobot extends Robot {
+public class Robot extends com.arcrobotics.ftclib.command.Robot {
 
-    private static MyRobot robot_instance = null;
+    private static Robot robot_instance = null;
     private final OpMode opMode;
 
     private GamepadEx controller1 = null;
@@ -40,7 +37,7 @@ public class MyRobot extends Robot {
         TELE_OP, AUTO_OP
     }
 
-    private MyRobot(OpModeType type, OpMode opMode) {
+    private Robot(OpModeType type, OpMode opMode) {
         this.opMode = opMode;
         if (type == OpModeType.TELE_OP) {
             init(false);
@@ -50,9 +47,9 @@ public class MyRobot extends Robot {
         }
     }
 
-    public static MyRobot getRobotInstance(OpModeType type, OpMode opMode) {
+    public static Robot getRobotInstance(OpModeType type, OpMode opMode) {
         if (robot_instance == null) {
-            robot_instance = new MyRobot(type, opMode);
+            robot_instance = new Robot(type, opMode);
         }
         return robot_instance;
     }

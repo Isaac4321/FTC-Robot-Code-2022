@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.util;
 
+import androidx.annotation.NonNull;
+
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 
 public final class MotorSettings {
@@ -18,7 +20,7 @@ public final class MotorSettings {
      * @param runMode the runMode that is being set
      * @param motors the motors who's run-mode is being set
      */
-    public static void setMotorRunModes(Motor.RunMode runMode, Motor... motors) {
+    public static void setMotorRunModes(Motor.RunMode runMode, @NonNull Motor... motors) {
         for (Motor motor : motors) {
             motor.setRunMode(runMode);
         }
@@ -30,31 +32,31 @@ public final class MotorSettings {
      * @param zeroPowerBehavior the zeroPowerBehavior that is being set
      * @param motors the motors who's zero power behavior is being set
      */
-    public static void setZeroPowerBehaviors(Motor.ZeroPowerBehavior zeroPowerBehavior, Motor... motors) {
+    public static void setZeroPowerBehaviors(Motor.ZeroPowerBehavior zeroPowerBehavior, @NonNull Motor... motors) {
         for (Motor motor : motors) {
             motor.setZeroPowerBehavior(zeroPowerBehavior);
         }
     }
 
-    public static void setTargetPositions(int pos, Motor... motors) {
+    public static void setTargetPositions(int pos, @NonNull Motor... motors) {
         for (Motor motor : motors) {
             motor.setTargetPosition(pos);
         }
     }
 
-    public static void stopMotors(Motor... motors) {
+    public static void stopMotors(@NonNull Motor... motors) {
         for (Motor motor : motors) {
             motor.stopMotor();
         }
     }
 
-    public static void setMotors(double power, Motor... motors) {
+    public static void setMotors(double power, @NonNull Motor... motors) {
         for (Motor motor : motors) {
             motor.set(power);
         }
     }
 
-    public static void resetEncoders(Motor... motors) {
+    public static void resetEncoders(@NonNull Motor... motors) {
         for (Motor motor : motors) {
             motor.resetEncoder();
         }
