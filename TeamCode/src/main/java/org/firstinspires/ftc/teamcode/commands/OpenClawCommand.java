@@ -4,11 +4,11 @@ import com.arcrobotics.ftclib.command.CommandBase;
 
 import org.firstinspires.ftc.teamcode.subsystems.ClawSubsystem;
 
-public class GrabConeCommand extends CommandBase {
+public class OpenClawCommand extends CommandBase {
 
     private final ClawSubsystem clawSubsystem;
 
-    public GrabConeCommand(ClawSubsystem subsystem) {
+    public OpenClawCommand(ClawSubsystem subsystem) {
         clawSubsystem = subsystem;
         addRequirements(clawSubsystem);
     }

@@ -36,9 +36,27 @@ public final class MotorSettings {
         }
     }
 
-    public static void setTargetDistance(double pos, Motor... motors) {
-        for (Motor motor: motors) {
-            motor.setTargetDistance(pos);
+    public static void setTargetPositions(int pos, Motor... motors) {
+        for (Motor motor : motors) {
+            motor.setTargetPosition(pos);
+        }
+    }
+
+    public static void stopMotors(Motor... motors) {
+        for (Motor motor : motors) {
+            motor.stopMotor();
+        }
+    }
+
+    public static void setMotors(double power, Motor... motors) {
+        for (Motor motor : motors) {
+            motor.set(power);
+        }
+    }
+
+    public static void resetEncoders(Motor... motors) {
+        for (Motor motor : motors) {
+            motor.resetEncoder();
         }
     }
 }

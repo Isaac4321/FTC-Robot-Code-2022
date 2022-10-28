@@ -1,19 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.arcrobotics.ftclib.command.CommandGroupBase;
 import com.arcrobotics.ftclib.command.Robot;
+import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.teamcode.commands.CloseClawCommand;
 import org.firstinspires.ftc.teamcode.commands.DropLinkageCommand;
-import org.firstinspires.ftc.teamcode.commands.GrabConeCommand;
 import org.firstinspires.ftc.teamcode.commands.LiftLinkageCommand;
+import org.firstinspires.ftc.teamcode.commands.OpenClawCommand;
 import org.firstinspires.ftc.teamcode.commands.MecanumDriveCommand;
 import org.firstinspires.ftc.teamcode.commands.StopLinkageCommand;
 import org.firstinspires.ftc.teamcode.subsystems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DrivebaseSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.LinkageSubsystem;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @SuppressWarnings("unused")
 public class MyRobot extends Robot {
@@ -25,9 +31,10 @@ public class MyRobot extends Robot {
     private GamepadEx controller2 = null;
 
     private DrivebaseSubsystem drivebaseSubsystem;
-//    private LinkageSubsystem linkageSubsystem;
+    private LinkageSubsystem linkageSubsystem;
     private ClawSubsystem clawSubsystem;
 
+    private final ArrayList<SubsystemBase> subsystems = new ArrayList<>();
 
     public enum OpModeType {
         TELE_OP, AUTO_OP
@@ -55,13 +62,10 @@ public class MyRobot extends Robot {
             initSubsystems(true);
         }
         else {
-            initJoysticks();
             initSubsystems(false);
+            initJoysticks();
+
         }
-
-    }
-
-    private void initAuto() {
 
     }
 
@@ -70,32 +74,46 @@ public class MyRobot extends Robot {
         controller2 = new GamepadEx(opMode.gamepad2);
 
         controller1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
-                .whenPressed(new GrabConeCommand(clawSubsystem))
+                .whenPressed(new OpenClawCommand(clawSubsystem))
                 .whenReleased(new CloseClawCommand(clawSubsystem));
 
         drivebaseSubsystem.setDefaultCommand(new MecanumDriveCommand(drivebaseSubsystem,
                 () -> controller1.getLeftX(),
                 () -> controller1.getLeftY(),
                 () -> controller1.getRightX()));
-//        controller1.getGamepadButton(GamepadKeys.Button.A)
-//                .whenPressed(new LiftLinkageCommand(linkageSubsystem))
-//                .whenReleased(new StopLinkageCommand(linkageSubsystem));
-//
-//        controller1.getGamepadButton(GamepadKeys.Button.B)
-//                .whenPressed(new DropLinkageCommand(linkageSubsystem))
-//                .whenReleased(new StopLinkageCommand(linkageSubsystem));
+        controller1.getGamepadButton(GamepadKeys.Button.A)
+                .whenPressed(new LiftLinkageCommand(linkageSubsystem))
+                .whenReleased(new StopLinkageCommand(linkageSubsystem));
+
+        controller1.getGamepadButton(GamepadKeys.Button.B)
+                .whenPressed(new DropLinkageCommand(linkageSubsystem))
+                .whenReleased(new StopLinkageCommand(linkageSubsystem));
     }
 
     private void initSubsystems(boolean auto) {
         drivebaseSubsystem = new DrivebaseSubsystem(opMode.hardwareMap, auto);
-//      linkageSubsystem = new LinkageSubsystem(opMode.hardwareMap);
+        linkageSubsystem = new LinkageSubsystem(opMode.hardwareMap, auto);
         clawSubsystem = new ClawSubsystem(opMode.hardwareMap, auto);
 
-        register(drivebaseSubsystem, /*linkageSubsystem,*/ clawSubsystem);
+        subsystems.addAll(Arrays.asList(drivebaseSubsystem, linkageSubsystem, clawSubsystem));
+
+        register(drivebaseSubsystem, linkageSubsystem, clawSubsystem);
 
     }
 
+    public DrivebaseSubsystem getDrivebaseSubsystem() {
+        return drivebaseSubsystem;
+    }
 
+    public LinkageSubsystem getLinkageSubsystem() {
+        return linkageSubsystem;
+    }
 
+    public ClawSubsystem getClawSubsystem() {
+        return clawSubsystem;
+    }
 
+    public ArrayList<SubsystemBase> getSubsystems() {
+        return subsystems;
+    }
 }

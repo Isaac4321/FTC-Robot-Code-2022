@@ -21,29 +21,22 @@ public class LinkageSubsystem extends CustomSubsystemBase {
     private final Motor leftMotor;
     private final Motor rightMotor;
 
-    /** The matching motor encoders for the linkage motors */
-    private final Motor.Encoder leftEncoder;
-    private final Motor.Encoder rightEncoder;
-
     /**
      * Enum of all target positions the linkage can go to.
      * Used in autonomous and for convince during tele-op periods
      */
     public enum Position {
         HOME(0),
-        SMALL_POLE(10),
-        MEDIUM_POLE(25),
-        TALL_POLE(30);
+        SMALL_POLE(15),
+        MEDIUM_POLE(30),
+        TALL_POLE(45);
 
-        private int encoderPosition;
+        private int deg;
 
-        Position(int encoderPosition) {
-            this.encoderPosition = encoderPosition;
+        Position(int deg) {
+            this.deg = deg;
         }
 
-        public int getEncoderPosition() {
-            return encoderPosition;
-        }
     }
 
     /**
@@ -68,10 +61,6 @@ public class LinkageSubsystem extends CustomSubsystemBase {
 
         leftMotor.resetEncoder();
         rightMotor.resetEncoder();
-
-        leftEncoder = leftMotor.encoder;
-        rightEncoder = rightMotor.encoder;
-
         currentPosition = Position.HOME;
 
         if (auto) {
@@ -112,20 +101,24 @@ public class LinkageSubsystem extends CustomSubsystemBase {
     public void goTo(Position pos) {
         switch (pos) {
             case HOME:
-                MotorSettings.setTargetDistance(Position.HOME.getEncoderPosition(), leftMotor, rightMotor);
+                MotorSettings.setTargetPositions(Position.HOME.deg, leftMotor, rightMotor);
                 break;
             case SMALL_POLE:
-                MotorSettings.setTargetDistance(Position.SMALL_POLE.getEncoderPosition(), leftMotor, rightMotor);
+                MotorSettings.setTargetPositions(Position.SMALL_POLE.deg, leftMotor, rightMotor);
                 break;
             case MEDIUM_POLE:
-                MotorSettings.setTargetDistance(Position.MEDIUM_POLE.getEncoderPosition(), leftMotor, rightMotor);
+                MotorSettings.setTargetPositions(Position.MEDIUM_POLE.deg, leftMotor, rightMotor);
                 break;
             case TALL_POLE:
-                MotorSettings.setTargetDistance(Position.TALL_POLE.getEncoderPosition(), leftMotor, rightMotor);
+                MotorSettings.setTargetPositions(Position.TALL_POLE.deg, leftMotor, rightMotor);
                 break;
         }
 
-        leftMotor.set(LIFT_SPEED_PERCENTAGE);
-        leftMotor.set(LIFT_SPEED_PERCENTAGE);
+        while (!leftMotor.atTargetPosition()) {
+            MotorSettings.setMotors(0.1, leftMotor, rightMotor);
+        }
+
+        MotorSettings.stopMotors(leftMotor, rightMotor);
     }
+
 }

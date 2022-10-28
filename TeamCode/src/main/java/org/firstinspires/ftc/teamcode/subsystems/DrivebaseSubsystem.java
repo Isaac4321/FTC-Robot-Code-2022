@@ -25,12 +25,6 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
     private final Motor rearLeft;
     private final Motor rearRight;
 
-    /** The matching motor encoders for the drivebase motors*/
-    private final Motor.Encoder frontLeftEncoder;
-    private final Motor.Encoder frontRightEncoder;
-    private final Motor.Encoder rearLeftEncoder;
-    private final Motor.Encoder rearRightEncoder;
-
     /**
      * Sole constructor of DrivebaseSubsystem.
      *
@@ -49,10 +43,7 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
         rearLeft = new Motor(hardwareMap, "rearLeft", motorType);
         rearRight = new Motor(hardwareMap, "rearRight", motorType);
 
-        frontLeftEncoder = frontLeft.encoder;
-        frontRightEncoder = frontRight.encoder;
-        rearLeftEncoder = rearLeft.encoder;
-        rearRightEncoder = rearRight.encoder;
+        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight);
 
         if (auto) {
             MotorSettings.setZeroPowerBehaviors(MotorSettings.defaultZeroPowerBehavior, frontLeft, frontRight, rearLeft, rearRight);
@@ -64,7 +55,6 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
         }
         mecanum = new MecanumDrive(frontLeft, frontRight, rearLeft, rearRight);
     }
-
 
     @Override
     public String getTask() {
@@ -81,6 +71,49 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
      */
     public void drive(double left_x, double left_y, double right_x) {
         mecanum.driveRobotCentric(left_x, left_y, right_x);
+    }
+
+    public void forwardDrive(int cm) {
+        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
+
+        int target = frontLeft.getCurrentPosition() + (int) (cm * 100); //Get the project target position (in pulses)
+
+        MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position (in pulses) for all the motors
+        MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
+
+        while (!frontLeft.atTargetPosition()) { //Keep powering the motors until they reach their target position
+            MotorSettings.setMotors(0.5, frontLeft, frontRight, rearLeft, rearRight);
+        }
+
+        MotorSettings.stopMotors(frontLeft, frontRight, rearLeft, rearRight); //Stop all motors
+    }
+
+    public void backwardDrive(int cm) {
+        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
+
+        int target = frontLeft.getCurrentPosition() + (int) (cm * 100); //Get the project target position (in pulses)
+
+        MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position for all the motors
+        MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
+
+        while (!frontLeft.atTargetPosition()) { //Keep powering the motors until they reach their target position
+            MotorSettings.setMotors(0.5, frontLeft, frontRight, rearLeft, rearRight);
+        }
+
+        MotorSettings.stopMotors(frontLeft, frontRight, rearLeft, rearRight); //Stop all motors
+    }
+
+    public void strafeDrive(int cm, boolean left) {
+        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
+
+        int target = frontLeft.getCurrentPosition() + (int) (cm * 100); //Get the project target position (in pulses)
+
+        MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position for all the motors
+        MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
+
+        while (!frontLeft.atTargetPosition()) {
+            mecanum.driveRobotCentric(left ? -0.5 : 0.5, 0, 0);
+        }
     }
 }
 

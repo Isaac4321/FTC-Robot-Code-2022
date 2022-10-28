@@ -1,4 +1,4 @@
 package org.firstinspires.ftc.teamcode.util;
 
-public class EncoderMath {
+public class EncoderConstants {
 }
