@@ -12,7 +12,7 @@ We are the Esquimalt Atom Smashers.
 6. [Creating a route in autonomous](#creating-a-route-in-autonomous)
 7. [Drive Team important notes](#drive-team-important-notes)
 
-
+<hr>
 
 ## Creating a subsystem
 
@@ -75,6 +75,7 @@ public class ClawSubsystem extends CustomSubsystemBase {
 }
 ```
 
+<hr>
 
 ## Creating a command
 
@@ -96,7 +97,55 @@ public class OpenClawCommand extends CommandBase {
     private final ClawSubsystem clawSubsystem;
 }
 ```
+### Step 3: Create constructor to initialize command
+
+```java
+public class OpenClawCommand extends CommandBase {
+
+    private final ClawSubsystem clawSubsystem;
+
+    public OpenClawCommand(ClawSubsystem subsystem) {
+        clawSubsystem = subsystem;
+        addRequirements(clawSubsystem);
+    }
+}
+```
+
+
+### Step 4: Override necessary parent methods
+```java
+public class OpenClawCommand extends CommandBase {
+
+    private final ClawSubsystem clawSubsystem;
+
+    public OpenClawCommand(ClawSubsystem subsystem) {
+        clawSubsystem = subsystem;
+        addRequirements(clawSubsystem);
+    }
+
+    @Override
+    public void initialize() {
+        clawSubsystem.openClaw();
+    }
+
+    @Override
+    public boolean isFinished() {
+        return true;
+    }
+}
+```
+<hr>
+
 ## Attaching a command to a subsystem
+
+<hr>
+
 ## Binding a command to a controller
+
+<hr>
+
 ## Creating a route in autonomous
+
+<hr>
+
 ## Drive Team important notes
