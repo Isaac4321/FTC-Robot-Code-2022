@@ -4,17 +4,17 @@ import com.arcrobotics.ftclib.command.CommandBase;
 
 import org.firstinspires.ftc.teamcode.internal.subsystems.LinkageSubsystem;
 
-public class StopLinkageCommand extends CommandBase {
+public class PrevLinkagePositionCommand extends CommandBase {
 
-    private final LinkageSubsystem linkageSubsystem;
+    private LinkageSubsystem linkageSubsystem;
 
-    public StopLinkageCommand(LinkageSubsystem subsystem) {
+    public PrevLinkagePositionCommand(LinkageSubsystem subsystem) {
         linkageSubsystem = subsystem;
         addRequirements(linkageSubsystem);
     }
 
-    @Override
-    public void execute() {
-        linkageSubsystem.stop();
+    public void prevPos() {
+        linkageSubsystem.prevPos();
     }
+
 }

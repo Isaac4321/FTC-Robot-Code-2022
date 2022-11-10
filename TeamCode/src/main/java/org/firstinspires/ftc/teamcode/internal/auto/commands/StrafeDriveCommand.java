@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.internal.auto.commands;
 
 import org.firstinspires.ftc.teamcode.internal.subsystems.DrivebaseSubsystem;
 
-public class StrafeDriveCommand extends AutonomousCommand {
+public class StrafeDriveCommand extends AutonomousCommandBase {
 
     private final DrivebaseSubsystem drivebaseSubsystem;
     private final int distance;
@@ -17,7 +17,7 @@ public class StrafeDriveCommand extends AutonomousCommand {
 
     @Override
     public void initialize() {
-        drivebaseSubsystem.strafeDrive(distance, left);
+        drivebaseSubsystem.strafe(distance, left);
     }
 
     @Override

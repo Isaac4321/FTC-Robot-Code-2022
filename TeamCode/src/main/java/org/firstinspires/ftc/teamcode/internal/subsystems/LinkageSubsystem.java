@@ -24,16 +24,19 @@ public class LinkageSubsystem extends CustomSubsystemBase {
     /** The current position of the linkage */
     private Position currentPosition;
 
+    private Position[] positions = {Position.HOME, Position.SMALL_POLE, Position.MEDIUM_POLE, Position.TALL_POLE};
+
+    private int cursor;
+
     /** The motors that control the linkage */
     private final Motor leftMotor;
-    private final Motor rightMotor;
 
     /**
      * Enum of all target positions the linkage can go to.
      * Used in autonomous and for convenience during tele-op periods
      */
     public enum Position {
-        HOME(0),
+        HOME(5),
         SMALL_POLE(15),
         MEDIUM_POLE(30),
         TALL_POLE(45);
@@ -60,78 +63,73 @@ public class LinkageSubsystem extends CustomSubsystemBase {
         super(hardwareMap, auto);
 
         leftMotor = new Motor(hardwareMap, "leftLinkageMotor", motorType);
-        rightMotor = new Motor(hardwareMap, "rightLinkageMotor", motorType);
+
 
         leftMotor.resetEncoder();
-        rightMotor.resetEncoder();
+        leftMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+
         currentPosition = Position.HOME;
+        cursor = 0;
 
         if (auto) {
-            MotorSettings.setZeroPowerBehaviors(MotorSettings.defaultZeroPowerBehavior, leftMotor, rightMotor);
-            MotorSettings.setMotorRunModes(MotorSettings.autoRunMode, leftMotor, rightMotor);
+            leftMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+            leftMotor.setRunMode(MotorSettings.autoRunMode);
         }
         else {
-            MotorSettings.setZeroPowerBehaviors(MotorSettings.defaultZeroPowerBehavior, leftMotor, rightMotor);
-            MotorSettings.setMotorRunModes(MotorSettings.defaultRunMode, leftMotor, rightMotor);
+            leftMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+            leftMotor.setRunMode(MotorSettings.defaultRunMode);
         }
     }
 
     /** Lifts the linkage at a given speed */
     public void lift() {
         leftMotor.set(LIFT_SPEED_PERCENTAGE);
-        rightMotor.set(LIFT_SPEED_PERCENTAGE);
     }
 
     /** Drops the linkage at a given speed */
     public void drop() {
         leftMotor.set(-DROP_SPEED_PERCENTAGE);
-        rightMotor.set(-DROP_SPEED_PERCENTAGE);
     }
 
     /** Stops the linkage from lifting or dropping */
     public void stop() {
         leftMotor.set(0);
-        rightMotor.set(0);
     }
 
-    /**
-     * Moves the linkage autonomously to the entered position.
-     *
-     * @param pos the position the linkage will lift to or drop to
-     */
-    public void goTo(Position pos) {
-        switch (pos) {
-            case HOME:
-                MotorSettings.setTargetPositions(
-                        (int)(Position.HOME.deg * EncoderConstants.Gobilda60RPM.PULSES_PER_CENTIMETRE), leftMotor, rightMotor);
-                break;
-            case SMALL_POLE:
-                MotorSettings.setTargetPositions(
-                        (int)(Position.SMALL_POLE.deg * EncoderConstants.Gobilda60RPM.PULSES_PER_CENTIMETRE), leftMotor, rightMotor);
-                break;
-            case MEDIUM_POLE:
-                MotorSettings.setTargetPositions(
-                        (int)(Position.MEDIUM_POLE.deg * EncoderConstants.Gobilda60RPM.PULSES_PER_CENTIMETRE), leftMotor, rightMotor);
-                break;
-            case TALL_POLE:
-                MotorSettings.setTargetPositions(
-                        (int)(Position.TALL_POLE.deg * EncoderConstants.Gobilda60RPM.PULSES_PER_CENTIMETRE), leftMotor, rightMotor);
-                break;
+
+    public void nextPos() {
+        if (currentPosition == Position.TALL_POLE) {
+            return;
         }
+        cursor++;
+        leftMotor.setTargetPosition((int) (positions[cursor].deg * EncoderConstants.Gobilda60RPM.PULSES_PER_DEGREE));
 
-
+        leftMotor.set(0.5);
         while (!leftMotor.atTargetPosition()) {
-            MotorSettings.setMotors(0.1, leftMotor, rightMotor);
+
         }
+        leftMotor.stopMotor();
 
-        MotorSettings.stopMotors(leftMotor, rightMotor);
-
-        currentPosition = pos;
+        currentPosition = positions[cursor];
     }
 
-    /**
-     * @return the current position of the linkage
-     */
+    public void prevPos() {
+        if (currentPosition == Position.HOME) {
+            return;
+        }
+        cursor--;
+        leftMotor.setTargetPosition((int) (-positions[cursor].deg * EncoderConstants.Gobilda60RPM.PULSES_PER_DEGREE));
+
+        leftMotor.set(0.1);
+        while (!leftMotor.atTargetPosition()) {
+
+        }
+        leftMotor.stopMotor();
+
+        cursor--;
+        currentPosition = positions[cursor];
+    }
+
     public Position getCurrentPosition() {
         return currentPosition;
     }

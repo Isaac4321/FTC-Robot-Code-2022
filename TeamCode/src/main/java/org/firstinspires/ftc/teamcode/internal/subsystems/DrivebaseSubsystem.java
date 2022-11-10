@@ -1,11 +1,18 @@
 package org.firstinspires.ftc.teamcode.internal.subsystems;
 
+import com.arcrobotics.ftclib.command.Command;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.internal.auto.commands.AutonomousCommandBase;
+import org.firstinspires.ftc.teamcode.internal.auto.commands.DriveCommand;
+import org.firstinspires.ftc.teamcode.internal.auto.commands.StrafeDriveCommand;
 import org.firstinspires.ftc.teamcode.internal.util.EncoderConstants;
 import org.firstinspires.ftc.teamcode.internal.util.MotorSettings;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a drivebase that handles all movement functions of a robot.
@@ -25,6 +32,8 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
     private final Motor frontRight;
     private final Motor rearLeft;
     private final Motor rearRight;
+
+    private final List<AutonomousCommandBase> drivenCommands = new ArrayList<>();
 
     /**
      * Sole constructor of DrivebaseSubsystem.
@@ -74,7 +83,7 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
      *
      * @param cm the distance the robot will drive
      */
-    public void forwardDrive(int cm) {
+    public void drive(int cm) {
         MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
 
         int target = frontLeft.getCurrentPosition() + (int) (cm * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE); //Get the project target position (in pulses)
@@ -82,31 +91,13 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
         MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position (in pulses) for all the motors
         MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
 
+        MotorSettings.setMotors(0.5, frontLeft, frontRight, rearLeft, rearRight);
         while (!frontLeft.atTargetPosition()) { //Keep powering the motors until they reach their target position
-            MotorSettings.setMotors(0.5, frontLeft, frontRight, rearLeft, rearRight);
+
         }
-
         MotorSettings.stopMotors(frontLeft, frontRight, rearLeft, rearRight); //Stop all motors
-    }
 
-    /**
-     * Autonomously drives the robot backwards given the entered distance
-     *
-     * @param cm the distance the robot will drive
-     */
-    public void backwardDrive(int cm) {
-        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
-
-        int target = frontLeft.getCurrentPosition() + (int) (cm * 100); //Get the project target position (in pulses)
-
-        MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position for all the motors
-        MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
-
-        while (!frontLeft.atTargetPosition()) { //Keep powering the motors until they reach their target position
-            MotorSettings.setMotors(0.5, frontLeft, frontRight, rearLeft, rearRight);
-        }
-
-        MotorSettings.stopMotors(frontLeft, frontRight, rearLeft, rearRight); //Stop all motors
+        drivenCommands.add(new DriveCommand(this, cm * -1));
     }
 
     /**
@@ -115,7 +106,8 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
      * @param cm the distance the robot will strafe
      * @param left strafing left or right
      */
-    public void strafeDrive(int cm, boolean left) {
+    public void strafe(int cm, boolean left) {
+
         MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
 
         int target = frontLeft.getCurrentPosition() + (int) (cm * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE); //Get the project target position (in pulses)
@@ -123,9 +115,20 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
         MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position for all the motors
         MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
 
+        mecanum.driveRobotCentric(left ? -0.5 : 0.5, 0, 0);
         while (!frontLeft.atTargetPosition()) {
-            mecanum.driveRobotCentric(left ? -0.5 : 0.5, 0, 0);
+
         }
+        MotorSettings.stopMotors(frontLeft, frontRight, rearLeft, rearRight); //Stop all motors
+
+        drivenCommands.add(new StrafeDriveCommand(this, cm, !left));
+    }
+
+    public void returnToHome() {
+        for (Command command : drivenCommands) {
+            command.execute();
+        }
+        drivenCommands.clear();
     }
 }
 

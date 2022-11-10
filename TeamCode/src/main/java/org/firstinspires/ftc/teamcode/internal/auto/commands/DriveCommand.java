@@ -2,12 +2,12 @@ package org.firstinspires.ftc.teamcode.internal.auto.commands;
 
 import org.firstinspires.ftc.teamcode.internal.subsystems.DrivebaseSubsystem;
 
-public class ForwardDriveCommand extends AutonomousCommand {
+public class DriveCommand extends AutonomousCommandBase {
 
     private final DrivebaseSubsystem drivebaseSubsystem;
     private final int distance;
 
-    public ForwardDriveCommand(DrivebaseSubsystem subsystem, int distance) {
+    public DriveCommand(DrivebaseSubsystem subsystem, int distance) {
         drivebaseSubsystem = subsystem;
         this.distance = distance;
         addRequirements(drivebaseSubsystem);
@@ -15,7 +15,7 @@ public class ForwardDriveCommand extends AutonomousCommand {
 
     @Override
     public void initialize() {
-        drivebaseSubsystem.forwardDrive(distance);
+        drivebaseSubsystem.drive(distance);
     }
 
     @Override
