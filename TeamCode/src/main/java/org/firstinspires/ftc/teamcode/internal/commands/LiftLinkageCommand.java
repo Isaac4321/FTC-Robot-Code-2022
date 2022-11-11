@@ -17,4 +17,9 @@ public class LiftLinkageCommand extends CommandBase {
     public void execute() {
         linkageSubsystem.lift();
     }
+
+    @Override
+    public boolean isFinished() {
+        return true;
+    }
 }

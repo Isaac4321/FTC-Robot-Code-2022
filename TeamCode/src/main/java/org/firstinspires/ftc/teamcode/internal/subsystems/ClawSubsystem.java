@@ -33,6 +33,7 @@ public class ClawSubsystem extends CustomSubsystemBase {
     public ClawSubsystem(HardwareMap hardwareMap, boolean auto) {
         super(hardwareMap, auto);
         claw = new SimpleServo(hardwareMap, "clawServo", MINIMUM_ANGLE, MAXIMUM_ANGLE, AngleUnit.DEGREES);
+        claw.setPosition(0);
     }
 
     /**
@@ -40,7 +41,7 @@ public class ClawSubsystem extends CustomSubsystemBase {
      * Calls the {@link SimpleServo#rotateByAngle(double) method}
      */
     public void openClaw() {
-        claw.rotateByAngle(90);
+        claw.turnToAngle(25);
     }
 
     /**
@@ -48,6 +49,6 @@ public class ClawSubsystem extends CustomSubsystemBase {
      * Calls the {@link SimpleServo#rotateByAngle(double) method}
      */
     public void closeClaw() {
-        claw.rotateByAngle(-90);
+        claw.turnToAngle(80);
     }
 }

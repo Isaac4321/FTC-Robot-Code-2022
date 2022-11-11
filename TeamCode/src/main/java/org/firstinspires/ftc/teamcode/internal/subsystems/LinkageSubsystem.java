@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.internal.subsystems;
 
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.internal.util.EncoderConstants;
@@ -15,7 +17,7 @@ import org.firstinspires.ftc.teamcode.internal.util.MotorSettings;
 public class LinkageSubsystem extends CustomSubsystemBase {
 
     /** The speed of which the motors run at */
-    private final double LIFT_SPEED_PERCENTAGE = 0.10;
+    private final double LIFT_SPEED_PERCENTAGE = 0.50;
     private final double DROP_SPEED_PERCENTAGE = 0.10;
 
     /** The type of motors the linkage is running */
@@ -24,9 +26,12 @@ public class LinkageSubsystem extends CustomSubsystemBase {
     /** The current position of the linkage */
     private Position currentPosition;
 
+    private Position[] positions = {Position.HOME, Position.SMALL_POLE, Position.MEDIUM_POLE, Position.TALL_POLE};
+
+    private int cursor;
+
     /** The motors that control the linkage */
-    private final Motor leftMotor;
-    private final Motor rightMotor;
+    private final DcMotor leftMotor;
 
     /**
      * Enum of all target positions the linkage can go to.
@@ -34,16 +39,15 @@ public class LinkageSubsystem extends CustomSubsystemBase {
      */
     public enum Position {
         HOME(0),
-        SMALL_POLE(15),
-        MEDIUM_POLE(30),
-        TALL_POLE(45);
+        SMALL_POLE(200),
+        MEDIUM_POLE(250),
+        TALL_POLE(300);
 
         private int deg;
 
         Position(int deg) {
             this.deg = deg;
         }
-
     }
 
     /**
@@ -59,74 +63,70 @@ public class LinkageSubsystem extends CustomSubsystemBase {
     public LinkageSubsystem(HardwareMap hardwareMap, boolean auto) {
         super(hardwareMap, auto);
 
-        leftMotor = new Motor(hardwareMap, "leftLinkageMotor", motorType);
-        rightMotor = new Motor(hardwareMap, "rightLinkageMotor", motorType);
+        leftMotor = hardwareMap.get(DcMotor.class, "leftLinkageMotor");
 
-        leftMotor.resetEncoder();
-        rightMotor.resetEncoder();
+
         currentPosition = Position.HOME;
+        cursor = 0;
 
-        if (auto) {
-            MotorSettings.setZeroPowerBehaviors(MotorSettings.defaultZeroPowerBehavior, leftMotor, rightMotor);
-            MotorSettings.setMotorRunModes(MotorSettings.autoRunMode, leftMotor, rightMotor);
-        }
-        else {
-            MotorSettings.setZeroPowerBehaviors(MotorSettings.defaultZeroPowerBehavior, leftMotor, rightMotor);
-            MotorSettings.setMotorRunModes(MotorSettings.defaultRunMode, leftMotor, rightMotor);
-        }
+        leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        if (auto) {
+//            leftMotor.setRunMode(Motor.RunMode.PositionControl);
+//            leftMotor.setDistancePerPulse(EncoderConstants.Gobilda60RPM.PULSES_PER_DEGREE);
+//        }
+//        else {
+//            leftMotor.setRunMode(MotorSettings.defaultRunMode);
+//
+//        }
     }
 
     /** Lifts the linkage at a given speed */
     public void lift() {
-        leftMotor.set(LIFT_SPEED_PERCENTAGE);
-        rightMotor.set(LIFT_SPEED_PERCENTAGE);
+        leftMotor.setPower(LIFT_SPEED_PERCENTAGE);
     }
 
     /** Drops the linkage at a given speed */
     public void drop() {
-        leftMotor.set(-DROP_SPEED_PERCENTAGE);
-        rightMotor.set(-DROP_SPEED_PERCENTAGE);
+        leftMotor.setPower(-DROP_SPEED_PERCENTAGE);
     }
 
     /** Stops the linkage from lifting or dropping */
     public void stop() {
-        leftMotor.set(0);
-        rightMotor.set(0);
+        leftMotor.setPower(0);
     }
 
-    /**
-     * Moves the linkage autonomously to the entered position.
-     *
-     * @param pos the position the linkage will lift to or drop to
-     */
-    public void goTo(Position pos) {
-        switch (pos) {
-            case HOME:
-                MotorSettings.setTargetPositions(
-                        (int)(Position.HOME.deg * EncoderConstants.Gobilda60RPM.PULSES_PER_CENTIMETRE), leftMotor, rightMotor);
-                break;
-            case SMALL_POLE:
-                MotorSettings.setTargetPositions(
-                        (int)(Position.SMALL_POLE.deg * EncoderConstants.Gobilda60RPM.PULSES_PER_CENTIMETRE), leftMotor, rightMotor);
-                break;
-            case MEDIUM_POLE:
-                MotorSettings.setTargetPositions(
-                        (int)(Position.MEDIUM_POLE.deg * EncoderConstants.Gobilda60RPM.PULSES_PER_CENTIMETRE), leftMotor, rightMotor);
-                break;
-            case TALL_POLE:
-                MotorSettings.setTargetPositions(
-                        (int)(Position.TALL_POLE.deg * EncoderConstants.Gobilda60RPM.PULSES_PER_CENTIMETRE), leftMotor, rightMotor);
-                break;
-        }
+    public void nextPos() {
+//        if (currentPosition == Position.TALL_POLE) {
+//            return;
+//        }
+//        cursor++;
+//        leftMotor.setTargetPosition(positions[cursor].deg);
+//
+//        while (!leftMotor.atTargetPosition()) {
+//            leftMotor.set(0.5);
+//        }
+//
+//        leftMotor.stopMotor();
+//
+//        currentPosition = positions[cursor];
+    }
 
-
-        while (!leftMotor.atTargetPosition()) {
-            MotorSettings.setMotors(0.1, leftMotor, rightMotor);
-        }
-
-        MotorSettings.stopMotors(leftMotor, rightMotor);
-
-        currentPosition = pos;
+    public void prevPos() {
+//        if (currentPosition == Position.HOME) {
+//            return;
+//        }
+//        cursor--;
+//        leftMotor.setTargetPosition((int) (-positions[cursor].deg * EncoderConstants.Gobilda60RPM.PULSES_PER_DEGREE));
+//
+//        leftMotor.set(0.1);
+//        while (!leftMotor.atTargetPosition()) {
+//
+//        }
+//        leftMotor.stopMotor();
+//
+//        currentPosition = positions[cursor];
     }
 
     /**

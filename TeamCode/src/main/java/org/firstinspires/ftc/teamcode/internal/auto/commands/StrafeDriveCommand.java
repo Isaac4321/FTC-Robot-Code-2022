@@ -17,7 +17,7 @@ public class StrafeDriveCommand extends AutonomousCommand {
 
     @Override
     public void initialize() {
-        drivebaseSubsystem.strafeDrive(distance, left);
+        drivebaseSubsystem.strafe(distance, left);
     }
 
     @Override

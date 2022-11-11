@@ -8,8 +8,8 @@ public class LightSubsystem extends CustomSubsystemBase{
     private final Motor underGlow;
     private final Motor armGlow;
 
-    private final double underGlowBrightness = 0.6;
-    private final double armGlowBrightness = 0.6;
+    private final double underGlowBrightness = 1;
+    private final double armGlowBrightness = 1;
 
     public enum LightType {
         UNDER_GLOW,

@@ -1,11 +1,25 @@
 package org.firstinspires.ftc.teamcode.internal.subsystems;
 
+import com.arcrobotics.ftclib.command.Command;
+import com.arcrobotics.ftclib.command.CommandBase;
+import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
+import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.R;
+import org.firstinspires.ftc.teamcode.internal.auto.commands.DriveCommand;
+import org.firstinspires.ftc.teamcode.internal.auto.commands.StrafeDriveCommand;
 import org.firstinspires.ftc.teamcode.internal.util.EncoderConstants;
 import org.firstinspires.ftc.teamcode.internal.util.MotorSettings;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Represents a drivebase that handles all movement functions of a robot.
@@ -13,60 +27,42 @@ import org.firstinspires.ftc.teamcode.internal.util.MotorSettings;
  *
  * @author Esquimalt Atom Smashers
  */
-public class DrivebaseSubsystem extends CustomSubsystemBase {
-    /** The type of motors the drive base is running */
-    private final Motor.GoBILDA motorType = Motor.GoBILDA.RPM_312;
-
-    /** A MecanumDrive instance which handles the driving of the robot */
-    private final MecanumDrive mecanum;
-
+public class DrivebaseSubsystem extends SubsystemBase {
     /** Motors which control the drivebase */
-    private final Motor frontLeft;
-    private final Motor frontRight;
-    private final Motor rearLeft;
-    private final Motor rearRight;
+    private final DcMotor frontLeft;
+    private final DcMotor frontRight;
+    private final DcMotor rearLeft;
+    private final DcMotor rearRight;
 
-    /**
-     * Sole constructor of DrivebaseSubsystem.
-     *
-     * Initializes all motors, encoders and mecanum drive and
-     * sets them to the proper configurations based on hardware map.
-     * Sets all the proper motor modes i.e brake mode and running with encoders.
-     *
-     * @param hardwareMap the hardware map of the robot
-     * @param auto whether or not the robot is in autonomous mode
-     */
-    public DrivebaseSubsystem(HardwareMap hardwareMap, boolean auto) {
-        super(hardwareMap, auto);
+    private DcMotor[] motors;
 
-        frontLeft = new Motor(hardwareMap, "frontLeft", motorType);
-        frontRight = new Motor(hardwareMap, "frontRight", motorType);
-        rearLeft = new Motor(hardwareMap, "rearLeft", motorType);
-        rearRight = new Motor(hardwareMap, "rearRight", motorType);
+    private final List<CommandBase> drivenCommands = new ArrayList<>();
 
-        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight);
 
-        if (auto) {
-            MotorSettings.setZeroPowerBehaviors(MotorSettings.defaultZeroPowerBehavior, frontLeft, frontRight, rearLeft, rearRight);
-            MotorSettings.setMotorRunModes(MotorSettings.autoRunMode, frontLeft, frontRight, rearLeft, rearRight);
-        }
-        else {
-            MotorSettings.setZeroPowerBehaviors(MotorSettings.defaultZeroPowerBehavior, frontLeft, frontRight, rearLeft, rearRight);
-            MotorSettings.setMotorRunModes(MotorSettings.defaultRunMode, frontLeft, frontRight, rearLeft, rearRight);
-        }
-        mecanum = new MecanumDrive(frontLeft, frontRight, rearLeft, rearRight);
+//    private final RevIMU gyro;
+
+    public DrivebaseSubsystem(HardwareMap hardwareMap) {
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+        rearLeft = hardwareMap.get(DcMotor.class, "rearLeft");
+        rearRight = hardwareMap.get(DcMotor.class, "rearRight");
+
+        motors = new DcMotor[]{frontLeft, frontRight, rearLeft, rearRight};
+
+        Arrays.stream(motors).forEach(motor -> motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE));
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        rearLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        Arrays.stream(motors)
+                .forEach(motor -> motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER));
     }
 
-    /**
-     * Drives the robot in the given direction based on the three given parameters
-     * Calls the {@link MecanumDrive#driveRobotCentric(double, double, double)}
-     *
-     * @param left_x the value of the left joystick x axis
-     * @param left_y the value of the left joystick y axis
-     * @param right_x the value of the right joystick x axis
-     */
     public void drive(double left_x, double left_y, double right_x) {
-        mecanum.driveRobotCentric(left_x, left_y, right_x);
+        frontLeft.setPower(Range.clip(left_y + left_x + right_x, -1, 1));
+        frontRight.setPower(Range.clip(left_y - left_x - right_x, -1, 1));
+        rearLeft.setPower(Range.clip(left_y - left_x + right_x, -1, 1));
+        rearRight.setPower(Range.clip(left_y + left_x - right_x, -1, 1));
     }
 
     /**
@@ -74,39 +70,26 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
      *
      * @param cm the distance the robot will drive
      */
-    public void forwardDrive(int cm) {
-        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
+    public void driveT(int cm) {
+        Arrays.stream(motors)
+                .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
+                        + (int)(cm * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE)));
 
-        int target = frontLeft.getCurrentPosition() + (int) (cm * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE); //Get the project target position (in pulses)
+        Arrays.stream(motors)
+                .forEach(motor -> motor.setMode(DcMotor.RunMode.RUN_TO_POSITION));
 
-        MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position (in pulses) for all the motors
-        MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
+        drive(0, 0.2, 0);
+        while(frontLeft.isBusy() && frontRight.isBusy() && rearLeft.isBusy() && rearRight.isBusy()) {
 
-        while (!frontLeft.atTargetPosition()) { //Keep powering the motors until they reach their target position
-            MotorSettings.setMotors(0.5, frontLeft, frontRight, rearLeft, rearRight);
         }
 
-        MotorSettings.stopMotors(frontLeft, frontRight, rearLeft, rearRight); //Stop all motors
-    }
+        Arrays.stream(motors)
+                .forEach(motor -> motor.setPower(0.0));
 
-    /**
-     * Autonomously drives the robot backwards given the entered distance
-     *
-     * @param cm the distance the robot will drive
-     */
-    public void backwardDrive(int cm) {
-        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
+        Arrays.stream(motors)
+                .forEach(motor -> motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER));
 
-        int target = frontLeft.getCurrentPosition() + (int) (cm * 100); //Get the project target position (in pulses)
 
-        MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position for all the motors
-        MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
-
-        while (!frontLeft.atTargetPosition()) { //Keep powering the motors until they reach their target position
-            MotorSettings.setMotors(0.5, frontLeft, frontRight, rearLeft, rearRight);
-        }
-
-        MotorSettings.stopMotors(frontLeft, frontRight, rearLeft, rearRight); //Stop all motors
     }
 
     /**
@@ -115,17 +98,29 @@ public class DrivebaseSubsystem extends CustomSubsystemBase {
      * @param cm the distance the robot will strafe
      * @param left strafing left or right
      */
-    public void strafeDrive(int cm, boolean left) {
-        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
+    public void strafe(int cm, boolean left) {
 
-        int target = frontLeft.getCurrentPosition() + (int) (cm * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE); //Get the project target position (in pulses)
+//        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
+//
+//        int target = frontLeft.getCurrentPosition() + (int) (cm * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE); //Get the project target position (in pulses)
+//
+//        MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position for all the motors
+//        MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
+//
+//        mecanum.driveRobotCentric(left ? -0.5 : 0.5, 0, 0);
+//        while (!frontLeft.atTargetPosition()) {
+//
+//        }
+//        MotorSettings.stopMotors(frontLeft, frontRight, rearLeft, rearRight); //Stop all motors
+//
+//        drivenCommands.add(new StrafeDriveCommand(this, cm, !left));
+    }
 
-        MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position for all the motors
-        MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
-
-        while (!frontLeft.atTargetPosition()) {
-            mecanum.driveRobotCentric(left ? -0.5 : 0.5, 0, 0);
+    public void returnToHome() {
+        for (Command command : drivenCommands) {
+            command.execute();
         }
+        drivenCommands.clear();
     }
 }
 
