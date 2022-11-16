@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode.internal.subsystems;
 
+import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-public class LightSubsystem extends CustomSubsystemBase{
+public class LightSubsystem extends SubsystemBase {
 
     private final Motor underGlow;
     private final Motor armGlow;
@@ -16,8 +17,7 @@ public class LightSubsystem extends CustomSubsystemBase{
         ARM_GLOW
     }
 
-    public LightSubsystem(HardwareMap hardwareMap, boolean auto) {
-        super(hardwareMap, auto);
+    public LightSubsystem(HardwareMap hardwareMap) {
         underGlow = new Motor(hardwareMap, "underGlow");
         armGlow = new Motor(hardwareMap, "armGlow");
     }

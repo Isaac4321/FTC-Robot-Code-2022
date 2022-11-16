@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.internal;
 
 import com.arcrobotics.ftclib.command.InstantCommand;
+import com.arcrobotics.ftclib.command.Subsystem;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
@@ -16,7 +17,6 @@ import org.firstinspires.ftc.teamcode.internal.commands.MecanumDriveCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.NextLinkagePositionCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.OpenClawCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.PrevLinkagePositionCommand;
-import org.firstinspires.ftc.teamcode.internal.commands.StopLinkageCommand;
 import org.firstinspires.ftc.teamcode.internal.subsystems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.internal.subsystems.DrivebaseSubsystem;
 import org.firstinspires.ftc.teamcode.internal.subsystems.LightSubsystem;
@@ -28,7 +28,7 @@ import java.util.Arrays;
 @SuppressWarnings("unused")
 public class Robot extends com.arcrobotics.ftclib.command.Robot {
 
-    private static Robot robot_instance = null;
+    private static Robot robotInstance = null;
     private final OpMode opMode;
 
     private GamepadEx controller1 = null;
@@ -51,36 +51,34 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
     }
 
     public static Robot getRobotInstance(OpModeType type, OpMode opMode) {
-        if (robot_instance == null) {
-            robot_instance = new Robot(type, opMode);
+        if (robotInstance == null) {
+            robotInstance = new Robot(type, opMode);
         }
-        return robot_instance;
+        return robotInstance;
     }
 
     private void init(boolean auto) {
         if (auto) {
-            initSubsystems(true);
+            initSubsystems();
         }
         else {
-            initSubsystems(false);
+            initSubsystems();
             initJoysticks();
-
-
         }
     }
 
     private void initJoysticks() {
         controller1 = new GamepadEx(opMode.gamepad1);
         controller2 = new GamepadEx(opMode.gamepad2);
-//
+
         controller1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
                 .toggleWhenPressed(new OpenClawCommand(clawSubsystem), new CloseClawCommand(clawSubsystem));
-//
+
         controller2.getGamepadButton(GamepadKeys.Button.A)
-                        .whenPressed(new DriveCommand(drivebaseSubsystem, 61));
+                        .whenPressed(new DriveCommand(drivebaseSubsystem, DrivebaseSubsystem.DistanceUnits.TILES, 2, 0.0));
 
         controller2.getGamepadButton(GamepadKeys.Button.B)
-                        .whenPressed(new DriveCommand(drivebaseSubsystem, -61));
+                        .whenPressed(new DriveCommand(drivebaseSubsystem, DrivebaseSubsystem.DistanceUnits.TILES, -2, 0.0));
 
         controller1.getGamepadButton(GamepadKeys.Button.A)
                 .whenPressed(new LiftLinkageCommand(linkageSubsystem))
@@ -89,20 +87,20 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
         controller1.getGamepadButton(GamepadKeys.Button.B)
                 .whenPressed(new DropLinkageCommand(linkageSubsystem))
                 .whenReleased(new InstantCommand( () -> linkageSubsystem.stop()));
-//
-//        controller1.getGamepadButton(GamepadKeys.Button.DPAD_UP)
-//                .whenPressed(new NextLinkagePositionCommand(linkageSubsystem))
-//                .whenReleased(new InstantCommand(() -> {
-//                    opMode.telemetry.addData("Current Position: " + linkageSubsystem.getCurrentPosition(), null);
-//                    opMode.telemetry.update();
-//                }));
-//
-//        controller1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN)
-//                .whenPressed(new PrevLinkagePositionCommand(linkageSubsystem))
-//                .whenReleased(new InstantCommand(() -> {
-//                    opMode.telemetry.addData("Current Position: " + linkageSubsystem.getCurrentPosition(), null);
-//                    opMode.telemetry.update();
-//                }));
+
+        controller1.getGamepadButton(GamepadKeys.Button.DPAD_UP)
+                .whenPressed(new NextLinkagePositionCommand(linkageSubsystem))
+                .whenReleased(new InstantCommand(() -> {
+                    opMode.telemetry.addData("Current Position: " + linkageSubsystem.getCurrentPosition(), null);
+                    opMode.telemetry.update();
+                }));
+
+        controller1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN)
+                .whenPressed(new PrevLinkagePositionCommand(linkageSubsystem))
+                .whenReleased(new InstantCommand(() -> {
+                    opMode.telemetry.addData("Current Position: " + linkageSubsystem.getCurrentPosition(), null);
+                    opMode.telemetry.update();
+                }));
 
         controller1.getGamepadButton(GamepadKeys.Button.X)
                         .toggleWhenPressed(
@@ -119,30 +117,45 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
                 () -> controller1.getRightX()));
     }
 
-    private void initSubsystems(boolean auto) {
+    private void initSubsystems() {
         drivebaseSubsystem = new DrivebaseSubsystem(opMode.hardwareMap);
-        linkageSubsystem = new LinkageSubsystem(opMode.hardwareMap, false);
-        clawSubsystem = new ClawSubsystem(opMode.hardwareMap, auto);
-        lightSubsystem = new LightSubsystem(opMode.hardwareMap, auto);
+        linkageSubsystem = new LinkageSubsystem(opMode.hardwareMap);
+        clawSubsystem = new ClawSubsystem(opMode.hardwareMap);
+        lightSubsystem = new LightSubsystem(opMode.hardwareMap);
 
         subsystems.addAll(Arrays.asList(drivebaseSubsystem, linkageSubsystem, clawSubsystem, lightSubsystem));
 
-        register(drivebaseSubsystem, linkageSubsystem, clawSubsystem, lightSubsystem);
+        register((Subsystem) subsystems);
+    }
+
+    /**
+     * @return the robot's drivebase-subsystem
+     */
+    public DrivebaseSubsystem getDrivebaseSubsystem() {
+        return drivebaseSubsystem;
+    }
+
+    /**
+     * @return the robot's linkage-subsystem
+     */
+    public LinkageSubsystem getLinkageSubsystem() {
+        return linkageSubsystem;
 
     }
 
-//    public DrivebaseSubsystem getDrivebaseSubsystem() {
-//        return drivebaseSubsystem;
-//    }
-//
-//    public LinkageSubsystem getLinkageSubsystem() {
-//        return linkageSubsystem;
-//
-//    }
-//
-//    public ClawSubsystem getClawSubsystem() {
-//        return clawSubsystem;
-//    }
+    /**
+     * @return the robot's claw-subsystem
+     */
+    public ClawSubsystem getClawSubsystem() {
+        return clawSubsystem;
+    }
+
+    /**
+     * @return the robot's light-subsystem
+     */
+    public LightSubsystem getLightSubsystem() {
+        return lightSubsystem;
+    }
 
     public ArrayList<SubsystemBase> getSubsystems() {
         return subsystems;

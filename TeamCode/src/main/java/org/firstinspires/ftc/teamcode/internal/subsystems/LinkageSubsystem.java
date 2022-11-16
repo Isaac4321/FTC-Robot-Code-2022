@@ -1,27 +1,24 @@
 package org.firstinspires.ftc.teamcode.internal.subsystems;
 
+import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.internal.util.EncoderConstants;
-import org.firstinspires.ftc.teamcode.internal.util.MotorSettings;
 
 /**
  * Represents a 4 bar linkage which handles lifting the claw.
- * Is a subclass of {@link CustomSubsystemBase} to achieve a command-based design pattern.
+ *
  *
  * @author Esquimalt Atom Smashers
  */
-public class LinkageSubsystem extends CustomSubsystemBase {
+public class LinkageSubsystem extends SubsystemBase {
 
     /** The speed of which the motors run at */
-    private final double LIFT_SPEED_PERCENTAGE = 0.50;
-    private final double DROP_SPEED_PERCENTAGE = 0.10;
-
-    /** The type of motors the linkage is running */
-    private final Motor.GoBILDA motorType = Motor.GoBILDA.RPM_60;
+    private final double LIFT_SPEED = 0.50;
+    private final double DROP_SPEED = -0.10;
 
     /** The current position of the linkage */
     private Position currentPosition;
@@ -31,7 +28,7 @@ public class LinkageSubsystem extends CustomSubsystemBase {
     private int cursor;
 
     /** The motors that control the linkage */
-    private final DcMotor leftMotor;
+    private final DcMotor linkage;
 
     /**
      * Enum of all target positions the linkage can go to.
@@ -39,9 +36,9 @@ public class LinkageSubsystem extends CustomSubsystemBase {
      */
     public enum Position {
         HOME(0),
-        SMALL_POLE(200),
-        MEDIUM_POLE(250),
-        TALL_POLE(300);
+        SMALL_POLE(15),
+        MEDIUM_POLE(90),
+        TALL_POLE(100);
 
         private int deg;
 
@@ -58,75 +55,75 @@ public class LinkageSubsystem extends CustomSubsystemBase {
      * Sets all the proper motor modes i.e brake mode and running with encoders.
      *
      * @param hardwareMap the hardware map of the robot
-     * @param auto whether or not the robot is in autonomous mode
      */
-    public LinkageSubsystem(HardwareMap hardwareMap, boolean auto) {
-        super(hardwareMap, auto);
-
-        leftMotor = hardwareMap.get(DcMotor.class, "leftLinkageMotor");
+    public LinkageSubsystem(HardwareMap hardwareMap) {
+        linkage = hardwareMap.get(DcMotor.class, "leftLinkageMotor");
 
 
         currentPosition = Position.HOME;
         cursor = 0;
 
-        leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        linkage.setDirection(DcMotorSimple.Direction.REVERSE);
+        linkage.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        if (auto) {
-//            leftMotor.setRunMode(Motor.RunMode.PositionControl);
-//            leftMotor.setDistancePerPulse(EncoderConstants.Gobilda60RPM.PULSES_PER_DEGREE);
-//        }
-//        else {
-//            leftMotor.setRunMode(MotorSettings.defaultRunMode);
-//
-//        }
+        linkage.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        linkage.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     /** Lifts the linkage at a given speed */
     public void lift() {
-        leftMotor.setPower(LIFT_SPEED_PERCENTAGE);
+        linkage.setPower(LIFT_SPEED);
     }
 
     /** Drops the linkage at a given speed */
     public void drop() {
-        leftMotor.setPower(-DROP_SPEED_PERCENTAGE);
+        linkage.setPower(DROP_SPEED);
     }
 
     /** Stops the linkage from lifting or dropping */
     public void stop() {
-        leftMotor.setPower(0);
+        linkage.setPower(0);
     }
 
     public void nextPos() {
-//        if (currentPosition == Position.TALL_POLE) {
-//            return;
-//        }
-//        cursor++;
-//        leftMotor.setTargetPosition(positions[cursor].deg);
-//
-//        while (!leftMotor.atTargetPosition()) {
-//            leftMotor.set(0.5);
-//        }
-//
-//        leftMotor.stopMotor();
-//
-//        currentPosition = positions[cursor];
+        if (currentPosition == Position.TALL_POLE) {
+            return;
+        }
+        cursor++;
+        linkage.setTargetPosition((int) (positions[cursor].deg * EncoderConstants.Gobilda60RPM.PULSES_PER_DEGREE));
+
+        linkage.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        linkage.setPower(LIFT_SPEED);
+        while (linkage.isBusy()) {
+
+        }
+        linkage.setPower(0);
+
+        linkage.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        currentPosition = positions[cursor];
     }
 
     public void prevPos() {
-//        if (currentPosition == Position.HOME) {
-//            return;
-//        }
-//        cursor--;
-//        leftMotor.setTargetPosition((int) (-positions[cursor].deg * EncoderConstants.Gobilda60RPM.PULSES_PER_DEGREE));
-//
-//        leftMotor.set(0.1);
-//        while (!leftMotor.atTargetPosition()) {
-//
-//        }
-//        leftMotor.stopMotor();
-//
-//        currentPosition = positions[cursor];
+        if (currentPosition == Position.HOME) {
+            return;
+        }
+        cursor--;
+        linkage.setTargetPosition((int) (positions[cursor].deg * EncoderConstants.Gobilda60RPM.PULSES_PER_DEGREE));
+
+        linkage.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        linkage.setPower(LIFT_SPEED);
+        while (linkage.isBusy()) {
+
+        }
+
+        linkage.setPower(0);
+
+        linkage.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        currentPosition = positions[cursor];
     }
 
     /**

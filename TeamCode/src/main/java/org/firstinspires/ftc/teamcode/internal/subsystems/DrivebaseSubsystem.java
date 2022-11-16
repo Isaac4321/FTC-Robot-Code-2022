@@ -1,29 +1,23 @@
 package org.firstinspires.ftc.teamcode.internal.subsystems;
 
-import com.arcrobotics.ftclib.command.Command;
-import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.command.SubsystemBase;
-import com.arcrobotics.ftclib.drivebase.MecanumDrive;
-import com.arcrobotics.ftclib.hardware.RevIMU;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.R;
-import org.firstinspires.ftc.teamcode.internal.auto.commands.DriveCommand;
-import org.firstinspires.ftc.teamcode.internal.auto.commands.StrafeDriveCommand;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.internal.util.EncoderConstants;
-import org.firstinspires.ftc.teamcode.internal.util.MotorSettings;
+import org.firstinspires.ftc.teamcode.internal.util.GyroConstants;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Represents a drivebase that handles all movement functions of a robot.
- * Is a subclass of {@link CustomSubsystemBase} to achieve a command-based design pattern.
  *
  * @author Esquimalt Atom Smashers
  */
@@ -36,11 +30,27 @@ public class DrivebaseSubsystem extends SubsystemBase {
 
     private DcMotor[] motors;
 
-    private final List<CommandBase> drivenCommands = new ArrayList<>();
+    /** The built-in gyro on the control hub */
+    private final BNO055IMU gyro;
 
+    /** Speeds in which the robot strafes and drives */
+    private final double AUTO_STRAFE_SPEED = 0.2;
+    private final double AUTO_DRIVE_SPEED = 0.5;
 
-//    private final RevIMU gyro;
+    /** Enum used for driving in different units of length */
+    public enum DistanceUnits {
+        CENTIMETRES,
+        INCHES,
+        TILES
+    }
 
+    /**
+     * The sole constructor of DrivebaseSubsystem. Initializes the 4 drivebase motors
+     * and the built-in gyro. The drivebase motors are set to their corresponding directions and
+     * run-modes. On top of this, the gyro parameters are set {@link BNO055IMU.Parameters}.
+     *
+     * @param hardwareMap the robot's hardwareMap
+     */
     public DrivebaseSubsystem(HardwareMap hardwareMap) {
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -49,37 +59,113 @@ public class DrivebaseSubsystem extends SubsystemBase {
 
         motors = new DcMotor[]{frontLeft, frontRight, rearLeft, rearRight};
 
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+
+        gyro = hardwareMap.get(BNO055IMU.class, "imu");
+        gyro.initialize(parameters);
+
         Arrays.stream(motors).forEach(motor -> motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE));
+
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         rearLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        Arrays.stream(motors)
+                .forEach(motor -> motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER));
+
         Arrays.stream(motors)
                 .forEach(motor -> motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER));
     }
 
-    public void drive(double left_x, double left_y, double right_x) {
-        frontLeft.setPower(Range.clip(left_y + left_x + right_x, -1, 1));
-        frontRight.setPower(Range.clip(left_y - left_x - right_x, -1, 1));
-        rearLeft.setPower(Range.clip(left_y - left_x + right_x, -1, 1));
-        rearRight.setPower(Range.clip(left_y + left_x - right_x, -1, 1));
+    /**
+     * Drives the robot given the 3 joystick positions. The drivebase uses mecanum wheels allowing for 8 directional travel.
+     *
+     * @param strafe how far the robot will strafe left or right
+     * @param forward how far the robot will drive forward or backwards
+     * @param turn how much the robot will turn clockwise or counterclockwise
+     */
+    public void drive(double strafe, double forward, double turn) {
+        frontLeft.setPower(Range.clip(forward + strafe + turn, -1, 1));
+        frontRight.setPower(Range.clip(forward - strafe - turn, -1, 1));
+        rearLeft.setPower(Range.clip(forward - strafe + turn, -1, 1));
+        rearRight.setPower(Range.clip(forward + strafe - turn, -1, 1));
     }
 
     /**
-     * Autonomously drives the robot forwards given the entered distance.
+     * Drives the robot autonomously forwards or backwards given the entered distance. Will auto adjust itself based on heading.
      *
-     * @param cm the distance the robot will drive
+     * @param unit the unit of measurement
+     * @param distance the distance the robot will drive
+     * @param heading the heading the robot will adjust itself based on
      */
-    public void driveT(int cm) {
-        Arrays.stream(motors)
-                .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
-                        + (int)(cm * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE)));
+    public void drive(DistanceUnits unit, double distance, double heading) {
+        double turn = 0;
+
+        switch (unit) {
+            case CENTIMETRES:
+                Arrays.stream(motors)
+                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
+                                + (int)(distance * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE)));
+                break;
+            case INCHES:
+                Arrays.stream(motors)
+                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
+                                + (int)(distance * EncoderConstants.Gobilda312RPM.PULSES_PER_INCH)));
+                break;
+            case TILES:
+                Arrays.stream(motors)
+                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
+                                + (int)(distance * EncoderConstants.Gobilda312RPM.PULSES_PER_TILE)));
+                break;
+        }
 
         Arrays.stream(motors)
                 .forEach(motor -> motor.setMode(DcMotor.RunMode.RUN_TO_POSITION));
 
-        drive(0, 0.2, 0);
+        drive(0, AUTO_DRIVE_SPEED, 0);
         while(frontLeft.isBusy() && frontRight.isBusy() && rearLeft.isBusy() && rearRight.isBusy()) {
+            turn = getSteeringCorrection(heading, GyroConstants.P_DRIVE_GAIN);
+
+            if (distance < 0) {
+                turn *= -1.0;
+            }
+
+            drive(0, AUTO_DRIVE_SPEED, turn);
+        }
+
+        Arrays.stream(motors)
+                .forEach(motor -> motor.setPower(0));
+
+        Arrays.stream(motors)
+                .forEach(motor -> motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER));
+    }
+
+    public void strafe(DistanceUnits unit, int distance, boolean left) {
+        switch (unit) {
+            case CENTIMETRES:
+                Arrays.stream(motors)
+                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
+                                + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE)));
+                break;
+            case INCHES:
+                Arrays.stream(motors)
+                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
+                                + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_INCH)));
+                break;
+            case TILES:
+                Arrays.stream(motors)
+                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
+                                + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_TILE)));
+                break;
+        }
+
+        Arrays.stream(motors)
+                .forEach(motor -> motor.setMode(DcMotor.RunMode.RUN_TO_POSITION));
+
+        drive(left ? AUTO_STRAFE_SPEED : -AUTO_STRAFE_SPEED, 0, 0);
+        while (frontLeft.isBusy() && frontRight.isBusy() && rearLeft.isBusy() && rearRight.isBusy()) {
 
         }
 
@@ -87,40 +173,50 @@ public class DrivebaseSubsystem extends SubsystemBase {
                 .forEach(motor -> motor.setPower(0.0));
 
         Arrays.stream(motors)
-                .forEach(motor -> motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER));
-
-
-    }
-
-    /**
-     * Autonomously strafes the robot given the entered distance and position
-     *
-     * @param cm the distance the robot will strafe
-     * @param left strafing left or right
-     */
-    public void strafe(int cm, boolean left) {
-
-//        MotorSettings.resetEncoders(frontLeft, frontRight, rearLeft, rearRight); //Reset encoders so no funny business happens
-//
-//        int target = frontLeft.getCurrentPosition() + (int) (cm * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE); //Get the project target position (in pulses)
-//
-//        MotorSettings.setTargetPositions(target, frontLeft, frontRight, rearLeft, rearRight); //Sets the target position for all the motors
-//        MotorSettings.setMotors(0, frontLeft, frontRight, rearLeft, rearRight); //Sets the power of all the motors to 0
-//
-//        mecanum.driveRobotCentric(left ? -0.5 : 0.5, 0, 0);
-//        while (!frontLeft.atTargetPosition()) {
-//
-//        }
-//        MotorSettings.stopMotors(frontLeft, frontRight, rearLeft, rearRight); //Stop all motors
-//
-//        drivenCommands.add(new StrafeDriveCommand(this, cm, !left));
-    }
-
-    public void returnToHome() {
-        for (Command command : drivenCommands) {
-            command.execute();
+                .forEach(motor -> motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER));
         }
-        drivenCommands.clear();
+
+    public void rotate(double heading) {
+        double headingError = getHeadingError(heading);
+        double turn = 0.0;
+
+        while (Math.abs(headingError) > 1.0) {
+            turn = getSteeringCorrection(heading, GyroConstants.P_TURN_GAIN);
+            drive(0, 0, turn);
+        }
+    }
+
+    private double getHeadingError(double desiredHeading) {
+        double headingError = desiredHeading - (getRawHeading() - 0.0); // 0.0 is the heading offset
+
+        while (headingError > 180) {
+            headingError -= 360;
+        }
+
+        while (headingError < -180) {
+            headingError += 360;
+        }
+
+        return headingError;
+    }
+
+    private double getSteeringCorrection(double desiredHeading, double proportionalGain) {
+        double headingError = desiredHeading - (getRawHeading() - 0.0); // 0.0 is the heading offset
+
+        while (headingError > 180) {
+            headingError -= 360;
+        }
+
+        while (headingError < -180) {
+            headingError += 360;
+        }
+
+        return Range.clip(headingError * proportionalGain, -1, 1);
+    }
+
+    private double getRawHeading() {
+        Orientation angles = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        return angles.firstAngle;
     }
 }
 
