@@ -36,9 +36,9 @@ public class LinkageSubsystem extends SubsystemBase {
      */
     public enum Position {
         HOME(0),
-        SMALL_POLE(30),
-        MEDIUM_POLE(60),
-        TALL_POLE(100);
+        SMALL_POLE(45),
+        MEDIUM_POLE(90),
+        TALL_POLE(110);
 
         private int deg;
 

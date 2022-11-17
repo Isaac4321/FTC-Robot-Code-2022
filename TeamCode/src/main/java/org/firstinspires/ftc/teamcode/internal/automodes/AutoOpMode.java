@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.internal.Robot;
 import org.firstinspires.ftc.teamcode.internal.auto.commands.DriveCommand;
+import org.firstinspires.ftc.teamcode.internal.auto.commands.StrafeDriveCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.CloseClawCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.LightOnCommand;
 import org.firstinspires.ftc.teamcode.internal.subsystems.DrivebaseSubsystem;
@@ -21,9 +22,10 @@ public class AutoOpMode extends CommandOpMode {
             Closes claw then drives forward for two tiles (48 inches) then turns on the under-glow LED's
          */
         schedule(
-                new CloseClawCommand(robot.getClawSubsystem()),
-                new DriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.TILES, 2, 0.0),
-                new LightOnCommand(robot.getLightSubsystem(), LightSubsystem.LightType.UNDER_GLOW));
+                new DriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.INCHES, 12, 0.0),
+                new StrafeDriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.INCHES, 12),
+                new DriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.INCHES, -12, 0.0),
+                new StrafeDriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.INCHES, -12));
 
     }
 }

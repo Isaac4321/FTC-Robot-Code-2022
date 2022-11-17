@@ -34,7 +34,7 @@ public class DrivebaseSubsystem extends SubsystemBase {
     private BNO055IMU gyro;
 
     /** Speeds in which the robot strafes and drives */
-    private final double AUTO_STRAFE_SPEED = 0.2;
+    private final double AUTO_STRAFE_SPEED = 0.5;
     private final double AUTO_DRIVE_SPEED = 0.5;
 
     /** Enum used for driving in different units of length */
@@ -130,13 +130,13 @@ public class DrivebaseSubsystem extends SubsystemBase {
 
         drive(0, AUTO_DRIVE_SPEED, 0);
         while(frontLeft.isBusy() && frontRight.isBusy() && rearLeft.isBusy() && rearRight.isBusy()) {
-            turn = getSteeringCorrection(heading, GyroConstants.P_DRIVE_GAIN);
-
-            if (distance < 0) {
-                turn *= -1.0;
-            }
-
-            drive(0, AUTO_DRIVE_SPEED, turn);
+//            turn = getSteeringCorrection(heading, GyroConstants.P_DRIVE_GAIN);
+//
+//            if (distance < 0) {
+//                turn *= -1.0;
+//            }
+//
+//            drive(0, AUTO_DRIVE_SPEED, turn);
         }
 
         Arrays.stream(motors)
@@ -147,23 +147,28 @@ public class DrivebaseSubsystem extends SubsystemBase {
     }
 
     public void strafe(DistanceUnits unit, int distance) {
-        switch (unit) {
-            case CENTIMETRES:
-                Arrays.stream(motors)
-                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
-                                + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE)));
-                break;
-            case INCHES:
-                Arrays.stream(motors)
-                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
-                                + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_INCH)));
-                break;
-            case TILES:
-                Arrays.stream(motors)
-                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
-                                + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_TILE)));
-                break;
-        }
+//        switch (unit) {
+//            case CENTIMETRES:
+//                Arrays.stream(motors)
+//                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
+//                                + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_CENTIMETRE)));
+//                break;
+//            case INCHES:
+//                Arrays.stream(motors)
+//                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
+//                                + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_INCH)));
+//                break;
+//            case TILES:
+//                Arrays.stream(motors)
+//                        .forEach(motor -> motor.setTargetPosition(motor.getCurrentPosition()
+//                                + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_TILE)));
+//                break;
+//        }
+
+        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() + (int) (-distance * EncoderConstants.Gobilda312RPM.PULSES_PER_TILE));
+        frontRight.setTargetPosition(frontRight.getCurrentPosition() + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_TILE));
+        rearLeft.setTargetPosition(rearLeft.getCurrentPosition() + (int) (distance * EncoderConstants.Gobilda312RPM.PULSES_PER_TILE));
+        rearRight.setTargetPosition(rearRight.getCurrentPosition() + (int) (-distance * EncoderConstants.Gobilda312RPM.PULSES_PER_TILE));
 
         Arrays.stream(motors)
                 .forEach(motor -> motor.setMode(DcMotor.RunMode.RUN_TO_POSITION));
@@ -181,13 +186,13 @@ public class DrivebaseSubsystem extends SubsystemBase {
         }
 
     public void rotate(double heading) {
-        double headingError = getHeadingError(heading);
-        double turn = 0.0;
-
-        while (Math.abs(headingError) > 1.0) {
-            turn = getSteeringCorrection(heading, GyroConstants.P_TURN_GAIN);
-            drive(0, 0, turn);
-        }
+//        double headingError = getHeadingError(heading);
+//        double turn = 0.0;
+//
+//        while (Math.abs(headingError) > 1.0) {
+//            turn = getSteeringCorrection(heading, GyroConstants.P_TURN_GAIN);
+//            drive(0, 0, turn);
+//        }
     }
 
     private double getHeadingError(double desiredHeading) {
