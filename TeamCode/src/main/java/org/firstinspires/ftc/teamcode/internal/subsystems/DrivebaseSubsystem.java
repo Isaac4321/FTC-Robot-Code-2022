@@ -31,7 +31,7 @@ public class DrivebaseSubsystem extends SubsystemBase {
     private DcMotor[] motors;
 
     /** The built-in gyro on the control hub */
-    private final BNO055IMU gyro;
+    private BNO055IMU gyro;
 
     /** Speeds in which the robot strafes and drives */
     private final double AUTO_STRAFE_SPEED = 0.2;
@@ -59,11 +59,11 @@ public class DrivebaseSubsystem extends SubsystemBase {
 
         motors = new DcMotor[]{frontLeft, frontRight, rearLeft, rearRight};
 
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-
+//        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+//        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+//
         gyro = hardwareMap.get(BNO055IMU.class, "imu");
-        gyro.initialize(parameters);
+//        gyro.initialize(parameters);
 
         Arrays.stream(motors).forEach(motor -> motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE));
 
@@ -91,6 +91,10 @@ public class DrivebaseSubsystem extends SubsystemBase {
         frontRight.setPower(Range.clip(forward - strafe - turn, -1, 1));
         rearLeft.setPower(Range.clip(forward - strafe + turn, -1, 1));
         rearRight.setPower(Range.clip(forward + strafe - turn, -1, 1));
+    }
+
+    public BNO055IMU getGyro() {
+        return gyro;
     }
 
     /**
@@ -142,7 +146,7 @@ public class DrivebaseSubsystem extends SubsystemBase {
                 .forEach(motor -> motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER));
     }
 
-    public void strafe(DistanceUnits unit, int distance, boolean left) {
+    public void strafe(DistanceUnits unit, int distance) {
         switch (unit) {
             case CENTIMETRES:
                 Arrays.stream(motors)
@@ -164,7 +168,7 @@ public class DrivebaseSubsystem extends SubsystemBase {
         Arrays.stream(motors)
                 .forEach(motor -> motor.setMode(DcMotor.RunMode.RUN_TO_POSITION));
 
-        drive(left ? AUTO_STRAFE_SPEED : -AUTO_STRAFE_SPEED, 0, 0);
+        drive(AUTO_STRAFE_SPEED, 0, 0);
         while (frontLeft.isBusy() && frontRight.isBusy() && rearLeft.isBusy() && rearRight.isBusy()) {
 
         }

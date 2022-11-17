@@ -9,19 +9,17 @@ public class StrafeDriveCommand extends CommandBase {
     private final DrivebaseSubsystem drivebaseSubsystem;
     private final DrivebaseSubsystem.DistanceUnits unit;
     private final int distance;
-    private final boolean left;
 
-    public StrafeDriveCommand(DrivebaseSubsystem subsystem, DrivebaseSubsystem.DistanceUnits unit, int distance, boolean left) {
+    public StrafeDriveCommand(DrivebaseSubsystem subsystem, DrivebaseSubsystem.DistanceUnits unit, int distance) {
         drivebaseSubsystem = subsystem;
         this.unit = unit;
         this.distance = distance;
-        this.left = left;
         addRequirements(drivebaseSubsystem);
     }
 
     @Override
     public void initialize() {
-        drivebaseSubsystem.strafe(unit, distance, left);
+        drivebaseSubsystem.strafe(unit, distance);
     }
 
     @Override

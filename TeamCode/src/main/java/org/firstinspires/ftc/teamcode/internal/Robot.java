@@ -8,6 +8,7 @@ import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.internal.auto.commands.DriveCommand;
+import org.firstinspires.ftc.teamcode.internal.auto.commands.StrafeDriveCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.CloseClawCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.DropLinkageCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.LiftLinkageCommand;
@@ -80,6 +81,13 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
         controller2.getGamepadButton(GamepadKeys.Button.B)
                         .whenPressed(new DriveCommand(drivebaseSubsystem, DrivebaseSubsystem.DistanceUnits.TILES, -2, 0.0));
 
+        controller2.getGamepadButton(GamepadKeys.Button.X)
+                .whenPressed(new StrafeDriveCommand(drivebaseSubsystem, DrivebaseSubsystem.DistanceUnits.TILES, 1));
+
+        controller2.getGamepadButton(GamepadKeys.Button.Y)
+                .whenPressed(new StrafeDriveCommand(drivebaseSubsystem, DrivebaseSubsystem.DistanceUnits.TILES, -1));
+
+
         controller1.getGamepadButton(GamepadKeys.Button.A)
                 .whenPressed(new LiftLinkageCommand(linkageSubsystem))
                 .whenReleased(new InstantCommand( () -> linkageSubsystem.stop()) );
@@ -125,7 +133,7 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
 
         subsystems.addAll(Arrays.asList(drivebaseSubsystem, linkageSubsystem, clawSubsystem, lightSubsystem));
 
-        register((Subsystem) subsystems);
+        register(drivebaseSubsystem, linkageSubsystem, clawSubsystem, lightSubsystem);
     }
 
     /**

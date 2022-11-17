@@ -17,8 +17,8 @@ import org.firstinspires.ftc.teamcode.internal.util.EncoderConstants;
 public class LinkageSubsystem extends SubsystemBase {
 
     /** The speed of which the motors run at */
-    private final double LIFT_SPEED = 0.50;
-    private final double DROP_SPEED = -0.10;
+    private final double LIFT_SPEED = 0.60;
+    private final double DROP_SPEED = -0.25;
 
     /** The current position of the linkage */
     private Position currentPosition;
@@ -36,8 +36,8 @@ public class LinkageSubsystem extends SubsystemBase {
      */
     public enum Position {
         HOME(0),
-        SMALL_POLE(15),
-        MEDIUM_POLE(90),
+        SMALL_POLE(30),
+        MEDIUM_POLE(60),
         TALL_POLE(100);
 
         private int deg;
@@ -58,7 +58,6 @@ public class LinkageSubsystem extends SubsystemBase {
      */
     public LinkageSubsystem(HardwareMap hardwareMap) {
         linkage = hardwareMap.get(DcMotor.class, "leftLinkageMotor");
-
 
         currentPosition = Position.HOME;
         cursor = 0;
@@ -114,7 +113,7 @@ public class LinkageSubsystem extends SubsystemBase {
 
         linkage.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        linkage.setPower(LIFT_SPEED);
+        linkage.setPower(0.25);
         while (linkage.isBusy()) {
 
         }
