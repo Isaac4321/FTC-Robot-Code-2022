@@ -32,7 +32,6 @@ public class ClawSubsystem extends SubsystemBase{
      */
     public ClawSubsystem(HardwareMap hardwareMap) {
         claw = new SimpleServo(hardwareMap, "clawServo", MINIMUM_ANGLE, MAXIMUM_ANGLE, AngleUnit.DEGREES);
-        claw.setPosition(0);
     }
 
     /**
