@@ -9,8 +9,8 @@ import org.openftc.easyopencv.OpenCvPipeline;
 public class SignalConePipeline extends OpenCvPipeline {
     public enum SignalConeColour {
         RED(new Scalar(170, 100, 100), new Scalar(180, 255, 255)),
-        GREEN(new Scalar(50, 100, 100), new Scalar(60, 255, 255)),
-        BLUE(new Scalar(105, 100, 100), new Scalar(115, 255, 255)),
+        GREEN(new Scalar(50, 100, 50), new Scalar(60, 255, 255)),
+        BLUE(new Scalar(105, 100, 100), new Scalar(130, 255, 255)),
         UNDEFINED(null, null);
 
         private final Scalar[] colourBounds;
@@ -28,7 +28,9 @@ public class SignalConePipeline extends OpenCvPipeline {
         }
     }
 
-    private SignalConeColour coneColour;
+    private volatile SignalConeColour coneColour = SignalConeColour.UNDEFINED;
+
+    private boolean hasConeColour = false;
 
     private final Mat redMatrix = new Mat();
     private final Mat greenMatrix = new Mat();
@@ -54,21 +56,25 @@ public class SignalConePipeline extends OpenCvPipeline {
 
         setSignalColour(red, green, blue);
 
-        return copyMatrix;
+        return input;
     }
 
     private void setSignalColour(double red, double green, double blue) {
         if (red > green && red > blue) {
             coneColour = SignalConeColour.RED;
+            hasConeColour = true;
         }
         else if (green > red && green > blue) {
             coneColour = SignalConeColour.GREEN;
+            hasConeColour = true;
         }
         else if (blue > green && blue > red) {
             coneColour = SignalConeColour.BLUE;
+            hasConeColour = true;
         }
         else {
             coneColour = SignalConeColour.UNDEFINED;
+            hasConeColour = true;
         }
     }
 
@@ -78,5 +84,9 @@ public class SignalConePipeline extends OpenCvPipeline {
 
     public double[] getMatrices() {
         return new double[]{Core.mean(redMatrix).val[0], Core.mean(greenMatrix).val[0], Core.mean(blueMatrix).val[0]};
+    }
+
+    public boolean hasConeColour() {
+        return hasConeColour;
     }
 }

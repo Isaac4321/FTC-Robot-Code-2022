@@ -32,8 +32,7 @@ public class AutoOpMode extends CommandOpMode {
         GREEN
     }
 
-    private SignalColours colour = SignalColours.PINK
-            ;
+    private SignalColours colour;
 
     @Override
     public void runOpMode() {
@@ -51,17 +50,17 @@ public class AutoOpMode extends CommandOpMode {
 
     @Override
     public void initialize() {
-//        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-//            @Override
-//            public void onOpened() {
-//                webcam.startStreaming(640, 360, OpenCvCameraRotation.UPRIGHT);
-//            }
-//
-//            @Override
-//            public void onError(int errorCode) {
-//
-//            }
-//        });
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                webcam.startStreaming(640, 360, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+
+            }
+        });
 
         if (colour == null) {
             schedule(new DriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.INCHES, 28));

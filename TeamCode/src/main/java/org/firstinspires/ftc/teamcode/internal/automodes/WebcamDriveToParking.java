@@ -23,6 +23,14 @@ public class WebcamDriveToParking extends CommandOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        waitForStart();
+        if (opModeIsActive()) {
+            initialize();
+        }
+    }
+
+    @Override
+    public void initialize() {
         robot = new Robot(this);
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -41,25 +49,23 @@ public class WebcamDriveToParking extends CommandOpMode {
             }
         });
 
+        while (!signalConePipeline.hasConeColour() || signalConePipeline.getConeColour() == SignalConePipeline.SignalConeColour.UNDEFINED) {
+
+        }
         SignalConePipeline.SignalConeColour signalColour = signalConePipeline.getConeColour();
         telemetry.addLine("Signal Colour: " + signalColour);
-
-//        switch (signalColour) {
-//            case RED:
-//                schedule(new DriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.TILES, 1),
-//                        new StrafeDriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.TILES, -1));
-//                break;
-//            case BLUE:
-//                schedule(new DriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.TILES, 1),
-//                        new StrafeDriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.TILES, 1));
-//                break;
-//            default:
-//                schedule(new DriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.TILES, 1));
-//        }
-    }
-
-    @Override
-    public void initialize() {
-
+        telemetry.update();
+        switch (signalColour) {
+            case RED:
+                schedule(new StrafeDriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.INCHES, -32),
+                        new DriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.INCHES, 28));
+                break;
+            case BLUE:
+                schedule(new StrafeDriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.INCHES, 32),
+                        new DriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.INCHES, 28));
+                break;
+            default:
+                schedule(new DriveCommand(robot.getDrivebaseSubsystem(), DrivebaseSubsystem.DistanceUnits.INCHES, 28));
+        }
     }
 }

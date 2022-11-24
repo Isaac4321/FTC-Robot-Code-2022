@@ -27,6 +27,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.internal.vision.pipelines.SignalConePipeline;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -48,6 +49,7 @@ import java.util.List;
 public class WebcamExample extends OpMode
 {
     OpenCvWebcam webcam;
+    SignalConePipeline pipeline = new SignalConePipeline();
 
     @Override
     public void init() {
@@ -55,7 +57,7 @@ public class WebcamExample extends OpMode
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
 
-        webcam.setPipeline(new SamplePipeline());
+        webcam.setPipeline(pipeline);
 
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
@@ -74,7 +76,12 @@ public class WebcamExample extends OpMode
 
     @Override
     public void loop() {
+        telemetry.addLine("Red Value: " + pipeline.getMatrices()[0]);
+        telemetry.addLine("Green Value: " + pipeline.getMatrices()[1]);
+        telemetry.addLine("Blue Value: " + pipeline.getMatrices()[2]);
 
+        telemetry.addLine("Signal Cone Colour: " + pipeline.getConeColour());
+        telemetry.update();
     }
 
     class SamplePipeline extends OpenCvPipeline
