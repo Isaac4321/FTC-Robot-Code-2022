@@ -14,11 +14,11 @@ import org.firstinspires.ftc.teamcode.internal.util.EncoderConstants;
  *
  * @author Esquimalt Atom Smashers
  */
-public class LinkageSubsystem extends SubsystemBase {
+public class LinkageSubsystem extends SubsystemBase{
 
     /** The speed of which the motors run at */
     private final double LIFT_SPEED = 0.60;
-    private final double DROP_SPEED = -0.25;
+    private final double DROP_SPEED = -0.35;
 
     /** The current position of the linkage */
     private Position currentPosition;
@@ -36,8 +36,8 @@ public class LinkageSubsystem extends SubsystemBase {
      */
     public enum Position {
         HOME(0),
-        SMALL_POLE(45),
-        MEDIUM_POLE(90),
+        SMALL_POLE(55),
+        MEDIUM_POLE(95),
         TALL_POLE(110);
 
         private int deg;

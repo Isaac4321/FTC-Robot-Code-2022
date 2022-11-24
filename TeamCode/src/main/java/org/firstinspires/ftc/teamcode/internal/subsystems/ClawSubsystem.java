@@ -12,7 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
  *
  * @author Esquimalt Atom Smashers
  */
-public class ClawSubsystem extends SubsystemBase {
+public class ClawSubsystem extends SubsystemBase{
     /** The minimum angle of the servo */
     private final int MINIMUM_ANGLE = 0;
 

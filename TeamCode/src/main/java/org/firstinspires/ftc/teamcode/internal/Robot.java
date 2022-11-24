@@ -1,14 +1,12 @@
 package org.firstinspires.ftc.teamcode.internal;
 
 import com.arcrobotics.ftclib.command.InstantCommand;
-import com.arcrobotics.ftclib.command.Subsystem;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.teamcode.internal.auto.commands.DriveCommand;
-import org.firstinspires.ftc.teamcode.internal.auto.commands.StrafeDriveCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.CloseClawCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.DropLinkageCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.LiftLinkageCommand;
@@ -18,6 +16,7 @@ import org.firstinspires.ftc.teamcode.internal.commands.MecanumDriveCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.NextLinkagePositionCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.OpenClawCommand;
 import org.firstinspires.ftc.teamcode.internal.commands.PrevLinkagePositionCommand;
+import org.firstinspires.ftc.teamcode.internal.commands.StopLinkageCommand;
 import org.firstinspires.ftc.teamcode.internal.subsystems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.internal.subsystems.DrivebaseSubsystem;
 import org.firstinspires.ftc.teamcode.internal.subsystems.LightSubsystem;
@@ -38,7 +37,11 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
     private DrivebaseSubsystem drivebaseSubsystem;
     private LinkageSubsystem linkageSubsystem;
     private ClawSubsystem clawSubsystem;
-    private LightSubsystem lightSubsystem;
+//    private LightSubsystem lightSubsystem;
+
+    boolean lightOn = false;
+    boolean clawClosed = false;
+    boolean isLifting = false;
 
     private final ArrayList<SubsystemBase> subsystems = new ArrayList<>();
 
@@ -46,47 +49,22 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
         TELE_OP, AUTO_OP
     }
 
-    private Robot(OpModeType type, OpMode opMode) {
+    public Robot(OpMode opMode) {
+        super();
         this.opMode = opMode;
-        init(type != OpModeType.TELE_OP);
+        init();
     }
 
-    public static Robot getRobotInstance(OpModeType type, OpMode opMode) {
-        if (robotInstance == null) {
-            robotInstance = new Robot(type, opMode);
-        }
-        return robotInstance;
-    }
-
-    private void init(boolean auto) {
-        if (auto) {
-            initSubsystems();
-        }
-        else {
-            initSubsystems();
-            initJoysticks();
-        }
+    private void init() {
+        initSubsystems();
+        initJoysticks();
     }
 
     private void initJoysticks() {
         controller1 = new GamepadEx(opMode.gamepad1);
-        controller2 = new GamepadEx(opMode.gamepad2);
 
         controller1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
                 .toggleWhenPressed(new OpenClawCommand(clawSubsystem), new CloseClawCommand(clawSubsystem));
-
-        controller2.getGamepadButton(GamepadKeys.Button.A)
-                        .whenPressed(new DriveCommand(drivebaseSubsystem, DrivebaseSubsystem.DistanceUnits.TILES, 2, 0.0));
-
-        controller2.getGamepadButton(GamepadKeys.Button.B)
-                        .whenPressed(new DriveCommand(drivebaseSubsystem, DrivebaseSubsystem.DistanceUnits.TILES, -2, 0.0));
-
-        controller2.getGamepadButton(GamepadKeys.Button.X)
-                .whenPressed(new StrafeDriveCommand(drivebaseSubsystem, DrivebaseSubsystem.DistanceUnits.TILES, 1));
-
-        controller2.getGamepadButton(GamepadKeys.Button.Y)
-                .whenPressed(new StrafeDriveCommand(drivebaseSubsystem, DrivebaseSubsystem.DistanceUnits.TILES, -1));
-
 
         controller1.getGamepadButton(GamepadKeys.Button.A)
                 .whenPressed(new LiftLinkageCommand(linkageSubsystem))
@@ -110,14 +88,10 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
                     opMode.telemetry.update();
                 }));
 
-        controller1.getGamepadButton(GamepadKeys.Button.X)
-                        .toggleWhenPressed(
-                                new LightOnCommand(lightSubsystem, LightSubsystem.LightType.UNDER_GLOW),
-                                new LightOffCommand(lightSubsystem, LightSubsystem.LightType.UNDER_GLOW));
-        controller1.getGamepadButton(GamepadKeys.Button.Y)
-                        .toggleWhenPressed(
-                                new LightOnCommand(lightSubsystem, LightSubsystem.LightType.ARM_GLOW),
-                                new LightOffCommand(lightSubsystem, LightSubsystem.LightType.ARM_GLOW));
+//        controller1.getGamepadButton(GamepadKeys.Button.X)
+//                        .toggleWhenPressed(
+//                                new LightOnCommand(lightSubsystem, LightSubsystem.LightType.UNDER_GLOW),
+//                                new LightOffCommand(lightSubsystem, LightSubsystem.LightType.UNDER_GLOW));
 
         drivebaseSubsystem.setDefaultCommand(new MecanumDriveCommand(drivebaseSubsystem,
                 () -> controller1.getLeftX(),
@@ -125,15 +99,69 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
                 () -> controller1.getRightX()));
     }
 
+//    public void run() {
+//        new MecanumDriveCommand(drivebaseSubsystem,
+//                controller1.left_stick_x,
+//                -controller1.left_stick_y,
+//                controller1.right_stick_x).execute();
+//
+//        if (controller1.x) {
+//            if (lightOn) {
+//                new LightOffCommand(lightSubsystem, LightSubsystem.LightType.UNDER_GLOW).execute();
+//                lightOn = false;
+//            }
+//            else {
+//                new LightOnCommand(lightSubsystem, LightSubsystem.LightType.UNDER_GLOW).execute();
+//                lightOn = true;
+//            }
+//            while (controller1.x);
+//        }
+//
+//        if (controller1.dpad_up) {
+//            new NextLinkagePositionCommand(linkageSubsystem).execute();
+//            new StopLinkageCommand(linkageSubsystem).execute();
+//        }
+//        if (controller1.dpad_down) {
+//            new PrevLinkagePositionCommand(linkageSubsystem).execute();
+//            new StopLinkageCommand(linkageSubsystem).execute();
+//        }
+//
+//        if (controller1.a) {
+//            new LiftLinkageCommand(linkageSubsystem).execute();
+//            while (controller1.a) {
+//
+//            }
+//            new StopLinkageCommand(linkageSubsystem).execute();
+//        }
+//
+//        if (controller1.b) {
+//            new DropLinkageCommand(linkageSubsystem).execute();
+//            while (controller1.b) {
+//
+//            }
+//            new StopLinkageCommand(linkageSubsystem).execute();
+//        }
+//
+//        if (controller1.right_bumper) {
+//            if (clawClosed) {
+//                new OpenClawCommand(clawSubsystem).execute();
+//                clawClosed = false;
+//            }
+//            else {
+//                new CloseClawCommand(clawSubsystem).execute();
+//                clawClosed = true;
+//            }
+//            while (controller1.right_bumper);
+//        }
+//    }
+
     private void initSubsystems() {
         drivebaseSubsystem = new DrivebaseSubsystem(opMode.hardwareMap);
         linkageSubsystem = new LinkageSubsystem(opMode.hardwareMap);
         clawSubsystem = new ClawSubsystem(opMode.hardwareMap);
-        lightSubsystem = new LightSubsystem(opMode.hardwareMap);
+//        lightSubsystem = new LightSubsystem(opMode.hardwareMap);
 
-        subsystems.addAll(Arrays.asList(drivebaseSubsystem, linkageSubsystem, clawSubsystem, lightSubsystem));
-
-        register(drivebaseSubsystem, linkageSubsystem, clawSubsystem, lightSubsystem);
+        register(drivebaseSubsystem, linkageSubsystem, clawSubsystem /*lightSubsystem*/);
     }
 
     /**
@@ -148,7 +176,6 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
      */
     public LinkageSubsystem getLinkageSubsystem() {
         return linkageSubsystem;
-
     }
 
     /**
@@ -161,11 +188,7 @@ public class Robot extends com.arcrobotics.ftclib.command.Robot {
     /**
      * @return the robot's light-subsystem
      */
-    public LightSubsystem getLightSubsystem() {
-        return lightSubsystem;
-    }
-
-    public ArrayList<SubsystemBase> getSubsystems() {
-        return subsystems;
-    }
+//    public LightSubsystem getLightSubsystem() {
+//        return lightSubsystem;
+//    }
 }

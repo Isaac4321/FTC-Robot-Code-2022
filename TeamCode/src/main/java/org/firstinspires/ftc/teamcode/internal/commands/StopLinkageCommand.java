@@ -14,7 +14,12 @@ public class StopLinkageCommand extends CommandBase {
     }
 
     @Override
-    public void execute() {
+    public void initialize() {
         linkageSubsystem.stop();
+    }
+
+    @Override
+    public boolean isFinished() {
+        return true;
     }
 }

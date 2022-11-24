@@ -13,7 +13,7 @@ public class MainOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot = Robot.getRobotInstance(Robot.OpModeType.TELE_OP, this);
+        robot = new Robot(this);
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -23,9 +23,5 @@ public class MainOpMode extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) {
             robot.run();
         }
-    }
-
-    public Robot getRobot() {
-        return robot;
     }
 }
